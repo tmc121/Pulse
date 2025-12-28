@@ -8,6 +8,7 @@ import { primaryNavigate, reportsNavigate } from 'public/appNavigation.js';
 import { initializeSearch, initializeSearchSelected, setupCreateOrEditReference } from 'public/InitializeData.js';
 import { reportsInNotReceived, reportsNotDelivered, reportsAllInbound ,getInboundReceivedOnlyCount} from 'public/appReports.js';
 import { validateFreshLogin } from 'public/appAuthentication.js';
+import { search } from 'wix-search';
 
 // MULTISTATE BOXES
 
@@ -183,7 +184,35 @@ $w.onReady( async function () {
             wixLocationFrontend.to('/home');
         }
     }
-    
+
+    // SEARCH ON INPUT
+    searchInput.onInput( async () => {
+    await primaryNavigate(primaryMultiState, primary_SearchState);
+    await initializeSearch(search_Dataset,
+        searchResults_Table,
+        searchInput,
+        searchTypeInput,
+        searchStatusInput,
+        searchByUserInput,
+        selectedReferenced_Dataset,
+        async (referenceNumber) => {
+            // Update the reference display and navigate to the reference path state
+            selectedReferenced_ReferenceNumber_Display.text = referenceNumber ? `${referenceNumber}` : 'Reference: N/A';
+            await primaryNavigate(primaryMultiState, primary_ReferencedPathState);
+        });
+});
+
+// SEARCH SUBMIT BUTTON
+searchSubmitButton.onClick( async () => {
+    await primaryNavigate(primaryMultiState, primary_SearchState);
+    await initializeSearchSelected(selectedReferenced_Dataset,
+        selectedReference_Table,
+        selectedReferenced_ReferenceNumber_Display,
+        selectedReferenced_Filter_Type_Dropdown,
+        selectedReferenced_Filter_Status_Dropdown,
+        selectedReferenced_Filter_ByUser_Dropdown);
+});
+
 // SET MAIN NAVIGATION MENU
 // SET BUTTONS TO NAVIGATE TO DIFFERENT PAGES
 
