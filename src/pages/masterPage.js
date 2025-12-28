@@ -16,12 +16,10 @@ const main_QuickMenu_Button_Manage = $w('#header-QuickMenu-Button-Manage');
 const main_QuickMenu_Button_Logout = $w('#header-QuickMenu-Button-Logout');
 
 
-
-$onReady( async function () {
+$w.onReady( async function () {
     // SET UP QUICKMENU FUNCTIONALITY
     await setupQuickMenu();
 });
-
 // SET UP QUICKMENU FUNCTIONALITY
 async function setupQuickMenu() {
     main_loginUserName_Button.label = "SignUp/Login";
@@ -54,4 +52,4 @@ async function setupQuickMenu() {
         
     });
 }
-    
+
