@@ -50,6 +50,7 @@ export async function handleOnLogin(headerLoginOutButton, headerQuickMenu) {
         console.log("User logged in successfully.");
         
         const memberId = await getLoggedInMemberId();
+        console.log("Retrieved memberId for validation:", memberId);
         const validation = await validateUserAccountAccess(memberId);
         
         if (!validation.isValid) {

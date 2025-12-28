@@ -16,7 +16,7 @@ import { authentication, currentMember } from 'wix-members';
 export async function getUserAccountByMemberId(id){
     try {
         const userAccount = await wixData.query("UserAccounts")
-            .eq("connectedMemberId", id.toString()) // Changed from "memberId"
+            .eq("connectedMemberId", id)
             .find()
             .then((results) => {
                 if (results.items.length > 0) {
@@ -38,13 +38,17 @@ export async function getUserAccountByMemberId(id){
 export async function getUserAccountByEmail(email){
 
     try {
+        console.log("Searching for UserAccount with connectedMemberId:", id);
         const userAccount = await wixData.query("UserAccounts")
-            .eq("loginEmail", email)
+            .eq("connectedMemberId", id)
             .find()
             .then((results) => {
+                console.log("UserAccount query results:", results.items.length, "accounts found");
                 if (results.items.length > 0) {
+                    console.log("Found UserAccount:", results.items[0].firstName, results.items[0].lastName);
                     return results.items[0]; // Return the first matching user account
                 } else {
+                    console.log("No UserAccount found for connectedMemberId:", id);
                     return null; // No matching user account found
                 }
             });
