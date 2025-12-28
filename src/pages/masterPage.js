@@ -5,7 +5,7 @@ import wixWindowFrontend from "wix-window-frontend";
 import { primaryNavigate, reportsNavigate } from 'public/appNavigation.js';
 
 // Get reference to the primary multistate box from Home page
-const primaryMultiState = $w('#multiStateBox1');
+// const primaryMultiState = $w('#multiStateBox1');
 
 
 
