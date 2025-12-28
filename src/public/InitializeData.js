@@ -310,76 +310,107 @@ export async function setupCreateOrEditReference(
     ];
 
     // Set up reference number input handler to load existing data when reference number is entered
+    // Clear any previous binding flag and ensure the handler is bound
+    if (referenceNumberInput) {
+        referenceNumberInput._initializeDataBound = false;
+    }
+    
     bindOnChangeOnce(referenceNumberInput, async () => {
-        const refNumber = referenceNumberInput?.value?.toString().trim() || '';
-        
-        if (refNumber) {
-            // EDIT EXISTING REFERENCE - check if reference exists
-            await createDataset.setFilter(
-                wixData.filter().eq('referenceNumber', refNumber)
-            );
-            await createDataset.refresh();
+        try {
+            const refNumber = referenceNumberInput?.value?.toString().trim() || '';
             
-            if (createDataset.getTotalCount() > 0) {
-                // Reference exists - populate fields for editing
-                await createDataset.setCurrentItemIndex(0);
-                const currentItem = createDataset.getCurrentItem();
+            if (refNumber) {
+                // EDIT EXISTING REFERENCE - check if reference exists
+                await createDataset.setFilter(
+                    wixData.filter().eq('referenceNumber', refNumber)
+                );
+                await createDataset.refresh();
                 
-                if (currentItem) {
-                    // Populate the form fields with existing data
-                    referenceTypeInput.value = currentItem.referenceType || '';
-                    statusInput.value = currentItem.status || '';
-                    addedByUserInput.value = currentItem.addedByUser || '';
+                if (createDataset.getTotalCount() > 0) {
+                    // Reference exists - populate fields for editing
+                    await createDataset.setCurrentItemIndex(0);
+                    const currentItem = createDataset.getCurrentItem();
+                    
+                    if (currentItem) {
+                        // Populate the form fields with existing data
+                        if (referenceTypeInput && currentItem.referenceType) {
+                            referenceTypeInput.value = currentItem.referenceType;
+                        }
+                        if (statusInput && currentItem.status) {
+                            statusInput.value = currentItem.status;
+                        }
+                        if (addedByUserInput && currentItem.addedByUser) {
+                            addedByUserInput.value = currentItem.addedByUser;
+                        }
+                    }
+                } else {
+                    // Reference doesn't exist - set up for new entry
+                    await createDataset.clear();
+                    await createDataset.new();
+                    await createDataset.setFieldValue('referenceNumber', refNumber);
+                    
+                    // Clear form fields for new entry
+                    if (referenceTypeInput) referenceTypeInput.value = '';
+                    if (statusInput) statusInput.value = '';
+                    if (addedByUserInput) addedByUserInput.value = '';
                 }
             } else {
-                // Reference doesn't exist - set up for new entry
+                // No reference number - set up for new entry
                 await createDataset.clear();
                 await createDataset.new();
-                await createDataset.setFieldValue('referenceNumber', refNumber);
                 
-                // Clear form fields for new entry
-                referenceTypeInput.value = '';
-                statusInput.value = '';
-                addedByUserInput.value = '';
+                // Clear form fields
+                if (referenceTypeInput) referenceTypeInput.value = '';
+                if (statusInput) statusInput.value = '';
+                if (addedByUserInput) addedByUserInput.value = '';
             }
-        } else {
-            // No reference number - set up for new entry
-            await createDataset.clear();
-            await createDataset.new();
-            
-            // Clear form fields
-            referenceTypeInput.value = '';
-            statusInput.value = '';
-            addedByUserInput.value = '';
+        } catch (error) {
+            console.error('Error in reference number onChange:', error);
         }
     });
 
     // Initial setup - check if there's already a reference number
     const initialRefNumber = referenceNumberInput?.value?.toString().trim() || '';
     if (initialRefNumber) {
-        await createDataset.setFilter(
-            wixData.filter().eq('referenceNumber', initialRefNumber)
-        );
-        await createDataset.refresh();
-        
-        if (createDataset.getTotalCount() > 0) {
-            await createDataset.setCurrentItemIndex(0);
-            const currentItem = createDataset.getCurrentItem();
+        try {
+            await createDataset.setFilter(
+                wixData.filter().eq('referenceNumber', initialRefNumber)
+            );
+            await createDataset.refresh();
             
-            if (currentItem) {
-                referenceTypeInput.value = currentItem.referenceType || '';
-                statusInput.value = currentItem.status || '';
-                addedByUserInput.value = currentItem.addedByUser || '';
+            if (createDataset.getTotalCount() > 0) {
+                await createDataset.setCurrentItemIndex(0);
+                const currentItem = createDataset.getCurrentItem();
+                
+                if (currentItem) {
+                    if (referenceTypeInput && currentItem.referenceType) {
+                        referenceTypeInput.value = currentItem.referenceType;
+                    }
+                    if (statusInput && currentItem.status) {
+                        statusInput.value = currentItem.status;
+                    }
+                    if (addedByUserInput && currentItem.addedByUser) {
+                        addedByUserInput.value = currentItem.addedByUser;
+                    }
+                }
+            } else {
+                await createDataset.clear();
+                await createDataset.new();
+                await createDataset.setFieldValue('referenceNumber', initialRefNumber);
             }
-        } else {
+        } catch (error) {
+            console.error('Error in initial setup:', error);
             await createDataset.clear();
             await createDataset.new();
-            await createDataset.setFieldValue('referenceNumber', initialRefNumber);
         }
     } else {
         // NEW REFERENCE
-        await createDataset.clear();
-        await createDataset.new();
+        try {
+            await createDataset.clear();
+            await createDataset.new();
+        } catch (error) {
+            console.error('Error setting up new reference:', error);
+        }
     }
 
     //SET UP TYPE FILTER DROPDOWN
