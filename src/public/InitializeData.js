@@ -180,7 +180,6 @@ export async function initializeSearchSelected(
     });
     
     await applySelectedFilters();
-} 
 }
 
 
