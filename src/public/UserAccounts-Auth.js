@@ -12,23 +12,23 @@ import { authentication, currentMember } from 'wix-members';
 // THIS FUNCTION WILL QUERY & CHECK FOR A USER ACCOUNT
 // BASED ON A LOGGED-IN MEMBER'S _ID;
 
+// Change this function to use connectedMemberId
 export async function getUserAccountByMemberId(id){
-
     try {
         const userAccount = await wixData.query("UserAccounts")
-            .eq("memberId", id)
+            .eq("connectedMemberId", id) // Changed from "memberId"
             .find()
             .then((results) => {
                 if (results.items.length > 0) {
-                    return results.items[0]; // Return the first matching user account
+                    return results.items[0];
                 } else {
-                    return null; // No matching user account found
+                    return null;
                 }
             });
         return userAccount;
     } catch (error) {
         console.error("Error fetching user account:", error);
-        throw error; // Rethrow the error for further handling if needed
+        throw error;
     }   
 }
 
