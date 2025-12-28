@@ -180,6 +180,7 @@ export async function initializeSearchSelected(
         updateReferenceDisplay(selectedReferenceDisplay, ref);
     });
     await applySelectedFilters();
+    selectedReferenced_ReferenceNumber_Display.text = referenceNumber ? `Reference: ${referenceNumber}` : 'Reference: N/A'; 
 }
 
 
