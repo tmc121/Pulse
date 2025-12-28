@@ -210,6 +210,36 @@ export async function reportsInNotReceived(reportsDataset,
     ];
     reportsInMenuDropdown.value = 'inNotReceived';
 
+    // On Change for th reportsInMenuDropdown should be handled in the page code to call the appropriate report function.
+    reportsInMenuDropdown.onChange( async (event) => {
+        const selectedValue = event.target.value;
+        if (selectedValue === 'inNotReceived') {
+            await reportsInNotReceived(reportsDataset,
+                reportsTable,
+                reportsFilterSearch_Input,
+                reportsInMenuDropdown,
+                primaryMultiState,
+                reportsMultiState,
+                reportsLoadingProgressBar);
+        } else if (selectedValue === 'notDelivered') {
+            await reportsNotDelivered(reportsDataset,
+                reportsTable,
+                reportsFilterSearch_Input,
+                reportsInMenuDropdown,
+                primaryMultiState,
+                reportsMultiState,
+                reportsLoadingProgressBar);
+        } else if (selectedValue === 'allInbound') {
+            await reportsAllInbound(reportsDataset,
+                reportsTable,
+                reportsFilterSearch_Input,
+                reportsInMenuDropdown,
+                primaryMultiState,
+                reportsMultiState,
+                reportsLoadingProgressBar);
+        }
+    });
+
     return ids.length;
 
 
@@ -250,8 +280,40 @@ export async function reportsNotDelivered(reportsDataset,
     ];
     reportsInMenuDropdown.value = 'notDelivered';
 
+    // On Change for th reportsInMenuDropdown should be handled in the page code to call the appropriate report function.
+    reportsInMenuDropdown.onChange( async (event) => {
+        const selectedValue = event.target.value;
+        if (selectedValue === 'inNotReceived') {
+            await reportsInNotReceived(reportsDataset,
+                reportsTable,
+                reportsFilterSearch_Input,
+                reportsInMenuDropdown,
+                primaryMultiState,
+                reportsMultiState,
+                reportsLoadingProgressBar);
+        } else if (selectedValue === 'notDelivered') {
+            await reportsNotDelivered(reportsDataset,
+                reportsTable,
+                reportsFilterSearch_Input,
+                reportsInMenuDropdown,
+                primaryMultiState,
+                reportsMultiState,
+                reportsLoadingProgressBar);
+        } else if (selectedValue === 'allInbound') {
+            await reportsAllInbound(reportsDataset,
+                reportsTable,
+                reportsFilterSearch_Input,
+                reportsInMenuDropdown,
+                primaryMultiState,
+                reportsMultiState,
+                reportsLoadingProgressBar);
+        }
+    })
+
     return ids.length;
 }
+
+
 
 
 // THE REPORT ALL WILL NOT FILTER FOR ANY STATUS
@@ -287,6 +349,36 @@ export async function reportsAllInbound(reportsDataset,
     ];
     reportsInMenuDropdown.value = 'allInbound';
 
+    // On Change for th reportsInMenuDropdown should be handled in the page code to call the appropriate report function.
+    reportsInMenuDropdown.onChange( async (event) => {
+        const selectedValue = event.target.value;
+        if (selectedValue === 'inNotReceived') {
+            await reportsInNotReceived(reportsDataset,
+                reportsTable,
+                reportsFilterSearch_Input,
+                reportsInMenuDropdown,
+                primaryMultiState,
+                reportsMultiState,
+                reportsLoadingProgressBar);
+        } else if (selectedValue === 'notDelivered') {
+            await reportsNotDelivered(reportsDataset,
+                reportsTable,
+                reportsFilterSearch_Input,
+                reportsInMenuDropdown,
+                primaryMultiState,
+                reportsMultiState,
+                reportsLoadingProgressBar);
+        } else if (selectedValue === 'allInbound') {
+            await reportsAllInbound(reportsDataset,
+                reportsTable,
+                reportsFilterSearch_Input,
+                reportsInMenuDropdown,
+                primaryMultiState,
+                reportsMultiState,
+                reportsLoadingProgressBar);
+        }
+    })
+
     return ids.length;
 }
 
@@ -302,41 +394,32 @@ export async function getInboundReceivedOnlyCount() {
             .isNotEmpty('referenceNumber')
             .find({ suppressAuth: true, suppressHooks: true });
 
-        const referenceMap = new Map();
+        // Track the latest item per referenceNumber by update date
+        const latestByRef = new Map();
         results.items.forEach((item) => {
             const refNum = item.referenceNumber ? item.referenceNumber.trim() : '';
             if (!refNum) {
                 return;
             }
-            if (!referenceMap.has(refNum)) {
-                referenceMap.set(refNum, []);
+
+            const dateValue = new Date(item.updateDate || item._updatedDate || item._createdDate).getTime();
+            const current = latestByRef.get(refNum);
+
+            if (!current) {
+                latestByRef.set(refNum, { item, dateValue });
+                return;
             }
-            referenceMap.get(refNum).push(item);
+
+            if (dateValue > current.dateValue) {
+                latestByRef.set(refNum, { item, dateValue });
+            }
         });
 
+        // Count only refs whose latest item has status 'Inbound Received'
         let count = 0;
-        referenceMap.forEach((items, refNum) => {
-            let hasInboundReceived = false;
-            let hasDelivered = false;
-
-            // Sort items by updateDate to ensure correct sequence
-            items.sort((a, b) => {
-                const aDate = new Date(a.updateDate || a._updatedDate || a._createdDate);
-                const bDate = new Date(b.updateDate || b._updatedDate || b._createdDate);
-                return aDate.getTime() - bDate.getTime();
-            });
-
-            for (const item of items) {
-                if (item.status === 'Inbound Received') {
-                    hasInboundReceived = true;
-                    hasDelivered = false; // Reset delivered flag when we see a new inbound
-                } else if (item.status === 'Delivered' && hasInboundReceived) {
-                    hasDelivered = true;
-                }
-            }
-
-            if (hasInboundReceived && !hasDelivered) {
-                count++;
+        latestByRef.forEach(({ item }) => {
+            if (item.status === 'Inbound Received') {
+                count += 1;
             }
         });
 
