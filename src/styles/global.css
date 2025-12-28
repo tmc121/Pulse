@@ -1,0 +1,222 @@
+/* Global CSS */
+
+/* ========================================
+   PREVENT TEXT SCALING IN ALL FORM CONTROLS
+   ======================================== */
+
+/* Root-level text size adjustment prevention */
+html {
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  -webkit-text-size-adjust: none;
+  -moz-text-size-adjust: none;
+  -ms-text-size-adjust: none;
+  text-size-adjust: none;
+}
+
+/* Prevent font boosting in webkit browsers */
+* {
+  max-height: 999999px;
+}
+
+/* ========================================
+   BUTTONS - Fixed font size and prevent scaling
+   ======================================== */
+button,
+.button,
+[type="button"],
+[type="submit"],
+[type="reset"],
+.wix-button,
+.wix-button-primary,
+.wix-button-secondary,
+[class*="button"] {
+  font-size: 14px !important;
+  -webkit-text-size-adjust: none !important;
+  -moz-text-size-adjust: none !important;
+  -ms-text-size-adjust: none !important;
+  text-size-adjust: none !important;
+  line-height: 1.4;
+}
+
+button:hover,
+button:active,
+button:focus,
+[type="button"]:hover,
+[type="button"]:active,
+[type="button"]:focus {
+  -webkit-text-size-adjust: none !important;
+  -moz-text-size-adjust: none !important;
+  -ms-text-size-adjust: none !important;
+  text-size-adjust: none !important;
+}
+
+/* ========================================
+   TABLES - Fixed font size for all table elements
+   ======================================== */
+table,
+.table,
+[class*="table"],
+.datafont_table,
+.datafont_table .table__cell {
+  font-size: 16px !important;
+  -webkit-text-size-adjust: none !important;
+  -moz-text-size-adjust: none !important;
+  -ms-text-size-adjust: none !important;
+  text-size-adjust: none !important;
+}
+
+table th,
+table td,
+.table__header,
+.table__cell,
+[class*="thead"],
+[class*="tbody"],
+tr,
+td,
+th {
+  font-size: 14px !important;
+  -webkit-text-size-adjust: none !important;
+  -moz-text-size-adjust: none !important;
+  -ms-text-size-adjust: none !important;
+  text-size-adjust: none !important;
+  line-height: 1.5;
+}
+
+/* ========================================
+   INPUT FIELDS - Fixed font size and prevent zoom
+   ======================================== */
+input,
+textarea,
+select,
+.input,
+.textarea,
+.dropdown,
+.form-control,
+[class*="input"],
+[class*="form"] {
+  font-size: 16px !important;
+  -webkit-text-size-adjust: none !important;
+  -moz-text-size-adjust: none !important;
+  -ms-text-size-adjust: none !important;
+  text-size-adjust: none !important;
+  line-height: 1.5;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+input[type="month"],
+input[type="week"],
+input[type="color"] {
+  font-size: 16px !important;
+  -webkit-text-size-adjust: 100% !important;
+  -moz-text-size-adjust: 100% !important;
+  -ms-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
+}
+
+/* Focus states */
+input:focus,
+textarea:focus,
+select:focus {
+  -webkit-text-size-adjust: none !important;
+  -moz-text-size-adjust: none !important;
+  -ms-text-size-adjust: none !important;
+  text-size-adjust: none !important;
+}
+
+/* ========================================
+   DROPDOWN/SELECT ELEMENTS
+   ======================================== */
+select,
+.select,
+.dropdown,
+.wix-dropdown,
+[class*="dropdown"],
+option,
+optgroup {
+  font-size: 16px !important;
+  -webkit-text-size-adjust: none !important;
+  -moz-text-size-adjust: none !important;
+  -ms-text-size-adjust: none !important;
+  text-size-adjust: none !important;
+  line-height: 1.5;
+}
+
+/* Dropdown option styling */
+option {
+  font-size: 14px !important;
+  padding: 5px !important;
+}
+
+/* ========================================
+   LABELS - Fixed font size for all labels
+   ======================================== */
+label,
+.label,
+.form-label,
+[class*="label"] {
+  font-size: 14px !important;
+  -webkit-text-size-adjust: none !important;
+  -moz-text-size-adjust: none !important;
+  -ms-text-size-adjust: none !important;
+  text-size-adjust: none !important;
+  line-height: 1.4;
+}
+
+/* ========================================
+   REPEATER ITEMS - maintain consistent sizing
+   ======================================== */
+.repeater-item,
+[class*="repeater"],
+.wix-repeater,
+.item-container,
+[class*="item"] {
+  -webkit-text-size-adjust: none !important;
+  -moz-text-size-adjust: none !important;
+  -ms-text-size-adjust: none !important;
+  text-size-adjust: none !important;
+}
+
+/* ========================================
+   TEXT AND CONTENT - Ensure no scaling
+   ======================================== */
+p,
+span,
+div,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  -webkit-text-size-adjust: none !important;
+  -moz-text-size-adjust: none !important;
+  -ms-text-size-adjust: none !important;
+  text-size-adjust: none !important;
+}
+
+/* ========================================
+   DISPLAY ELEMENTS - Fixed sizing
+   ======================================== */
+[class*="display"],
+[class*="text"],
+[class*="content"] {
+  -webkit-text-size-adjust: none !important;
+  -moz-text-size-adjust: none !important;
+  -ms-text-size-adjust: none !important;
+  text-size-adjust: none !important;
+}
