@@ -33,7 +33,7 @@ async function setupQuickMenu() {
         } else {
             main_Header_Menu_Wrapper.collapse();
         }
-        main_loginUserName_Button.onMouseOut( () => {
+        main_Header_Menu_Wrapper.onMouseOut( () => {
             main_Header_Menu_Wrapper.collapse();
         });
     });
