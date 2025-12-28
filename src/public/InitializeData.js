@@ -353,8 +353,8 @@ export async function setupCreateOrEditReference(
 
     // Set up reference number input handler to load existing data when reference number is entered
     // Use direct onChange to ensure it always works
-    if (referenceNumberInput && typeof referenceNumberInput.onChange === 'function') {
-        referenceNumberInput.onChange(async () => {
+    if (referenceNumberInput && typeof referenceNumberInput.onInput === 'function') {
+        referenceNumberInput.onInput(async () => {
             try {
                 const refNumber = referenceNumberInput?.value?.toString().trim() || '';
 
