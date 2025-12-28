@@ -32,45 +32,63 @@ export async function loadUserAccountPageData(
     myAccountOptionsRepeater,
     myAccountOptionsRepeaterItemButton,
     updatePasswordButton,myAccountExitButton,primaryMultiState) {
-    
+    try {
+        const member = await currentMember.getMember();
+        if (member && member._id) {
+            const userAccount = await getUserAccountByMemberId(member._id);
+            if (userAccount) {
+                // Populate the My Account page display fields
+                if (myAccountFullName && 'text' in myAccountFullName) {
+                    myAccountFullName.text = `${userAccount.firstName || ''} ${userAccount.lastName || ''}`.trim();
+                }
+                if (myAccountEmail && 'text' in myAccountEmail) {
+                    myAccountEmail.text = userAccount.loginEmail || 'Cannot retrieve email';
+                }
+                if (myAccountUserId && 'text' in myAccountUserId) {
+                    myAccountUserId.text = userAccount.userId || 'Cannot retrieve User ID';
+                }
+                if (myAccountStatus && 'label' in myAccountStatus) {
+                    myAccountStatus.label = userAccount.status || 'Unknown';
+                }
 
-try {
-    const member = await currentMember.getMember();
-    if (member && member._id) {
-        const userAccount =  await getUserAccountByMemberId(member._id);
-        if (userAccount) {
-            // Populate the My Account page inputs with user account data
-            myAccountFullName.value = userAccount.firstName + ' ' + userAccount.lastName || '';
-            myAccountEmail.value = userAccount.loginEmail || 'Cannot retrieve email';
-            myAccountUserId.value = userAccount.userId || 'Cannot retrieve User ID';
-            myAccountStatus.value = userAccount.status || 'Unknown';
-            
-            // Configure options repeater and buttons as needed
-            myAccountOptionsRepeater.data = userAccount.teamAdmin || [];
-            myAccountOptionsRepeater.onItemReady( ($item, itemData, index) => {
-                $item(myAccountOptionsRepeaterItemButton).label = `Team Admin: ${itemData}`; // Adjust as necessary
-            });
+                // Configure options repeater if present
+                if (myAccountOptionsRepeater) {
+                    const buttonSelector = typeof myAccountOptionsRepeaterItemButton === 'string'
+                        ? myAccountOptionsRepeaterItemButton
+                        : myAccountOptionsRepeaterItemButton?.id
+                            ? `#${myAccountOptionsRepeaterItemButton.id}`
+                            : null;
 
-            // Enable or disable update password button based on some condition
-            if (userAccount.status === 'Active') {
-                updatePasswordButton.enable();
+                    myAccountOptionsRepeater.data = userAccount.teamAdmin || [];
+                    if (buttonSelector) {
+                        myAccountOptionsRepeater.onItemReady(($item, itemData) => {
+                            $item(buttonSelector).label = `Team Admin: ${itemData}`;
+                        });
+                    }
+                }
+
+                // Enable or disable update password button based on status
+                if (updatePasswordButton && typeof updatePasswordButton.enable === 'function') {
+                    if (userAccount.status === 'Active') {
+                        updatePasswordButton.enable();
+                    } else if (typeof updatePasswordButton.disable === 'function') {
+                        updatePasswordButton.disable();
+                    }
+                }
             } else {
-                updatePasswordButton.disable();
+                console.warn('No UserAccount found for member ID:', member._id);
             }
-            // Add more fields as necessary
         } else {
-            console.warn("No UserAccount found for member ID:", member._id);
+            console.warn('No logged-in member found.');
         }
-    } else {
-        console.warn("No logged-in member found.");
-    }       
-} catch (error) {
-    console.error("Error loading UserAccount data for My Account page:", error);
-    throw error; // Rethrow the error for further handling if needed    
-}
+    } catch (error) {
+        console.error('Error loading UserAccount data for My Account page:', error);
+        // Do not rethrow; we still want the page to continue
+    }
 
-myAccountExitButton.onClick(async () => {
-    await primaryNavigate(primaryMultiState, 'dashboardMain1'); // Navigate back to dashboard main
-});
-
+    if (myAccountExitButton && typeof myAccountExitButton.onClick === 'function') {
+        myAccountExitButton.onClick(async () => {
+            await primaryNavigate(primaryMultiState, 'dashboard'); // Navigate back to dashboard state
+        });
+    }
 }

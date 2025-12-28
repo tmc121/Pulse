@@ -4,12 +4,11 @@ import wixLocationFrontend from 'wix-location-frontend';
 import wixWindowFrontend from 'wix-window-frontend';
 
 //IMPORTS
-import { primaryNavigate, reportsNavigate } from 'public/appNavigation.js';
+import { primaryNavigate } from 'public/appNavigation.js';
 import { initializeSearch, initializeSearchSelected, setupCreateOrEditReference } from 'public/InitializeData.js';
 import { reportsInNotReceived, reportsNotDelivered, reportsAllInbound ,getInboundReceivedOnlyCount} from 'public/appReports.js';
 import { validateFreshLogin } from 'public/appAuthentication.js';
 import { loadUserAccountPageData } from 'public/appMyAccount.js';
-import { search } from 'wix-search';
 
 // MULTISTATE BOXES
 
