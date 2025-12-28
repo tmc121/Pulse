@@ -277,8 +277,8 @@ const manageData = [
 async function setupDashboardManageSection() {
     manageSection_Repeater.data = manageData;
     manageSection_Repeater.onItemReady( ($item, itemData, index) => {
-        $item(manageSection_Repeater_Item_Button).label = itemData.buttonLabel;
-        $item(manageSection_Repeater_Item_Button).onClick( async () => {
+        $item('#dashboard-ManageSection-Repeater-ItemButton').label = itemData.buttonLabel;
+        $item('#dashboard-ManageSection-Repeater-ItemButton').onClick( async () => {
             await wixLocationFrontend.to(itemData.linkURL);
         });
     });
@@ -301,8 +301,8 @@ const accountData = [
 async function setupDashboardAccountSection() {
     accountSection_Repeater.data = accountData;
     accountSection_Repeater.onItemReady( ($item, itemData, index) => {
-        $item(accountSection_Repeater_Item_Button).label = itemData.buttonLabel;
-        $item(accountSection_Repeater_Item_Button).onClick( async () => {
+        $item('#dashboard-AccountSection-Repeater-ItemButton').label = itemData.buttonLabel;
+        $item('#dashboard-AccountSection-Repeater-ItemButton').onClick( async () => {
             await wixLocationFrontend.to(itemData.linkURL);
         });
     });
@@ -327,8 +327,8 @@ const settingsData = [
 async function setupDashboardSettingsSection() {
     settingsSection_Repeater.data = settingsData;
     settingsSection_Repeater.onItemReady( ($item, itemData, index) => {
-        $item(settingsSection_Repeater_Item_Button).label = itemData.buttonLabel;
-        $item(settingsSection_Repeater_Item_Button).onClick( async () => {
+        $item('#dashboard-SettingsSection-Repeater-ItemButton').label = itemData.buttonLabel;
+        $item('#dashboard-SettingsSection-Repeater-ItemButton').onClick( async () => {
             await wixLocationFrontend.to(itemData.linkURL);
         });
     });
