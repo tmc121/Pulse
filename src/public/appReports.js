@@ -293,17 +293,17 @@ export async function reportsAllInbound(reportsDataset,
 // ANALYTICS FUNCTIONS
 
 // SET UP INBOUND REPORT COUNT
-// ON GET COUNT OF RECORDS FOR 'INBOUND RECEIVED' STATUS THAT ONLY HAS AN INBOUND RECEIVED STATUS RECORD WITHOUT A CORRESPONDING 'DELIVERED' STATUS RECORD
+// GET COUNT OF RECORDS FOR 'INBOUND RECEIVED' STATUS THAT ONLY HAS AN INBOUND RECEIVED STATUS RECORD WITHOUT A CORRESPONDING 'DELIVERED' STATUS RECORD
 // IF MULTIPLE RECORDS EXIST WITH THE SAME REFERENCE NUMBER, ONLY THE MOST RECENT RECORD BASED ON updateDate FIELD WILL BE CONSIDERED FOR THE REPORT COUNT
 export async function getInboundReceivedOnlyCount() {
     try {
-wixdata.query('DemoData')
-    .ne('referenceNumber', '')
-    .isNotEmpty('referenceNumber')
-    .find()
-    .then( (results) => {
+        const results = await wixData.query('DemoData')
+            .ne('referenceNumber', '')
+            .isNotEmpty('referenceNumber')
+            .find();
+
         const referenceMap = new Map();
-        results.items.forEach( (item) => {
+        results.items.forEach((item) => {
             const refNum = item.referenceNumber ? item.referenceNumber.trim() : '';
             if (!refNum) {
                 return;
@@ -315,12 +315,12 @@ wixdata.query('DemoData')
         });
 
         let count = 0;
-        referenceMap.forEach( (items, refNum) => {
+        referenceMap.forEach((items, refNum) => {
             let hasInboundReceived = false;
             let hasDelivered = false;
 
             // Sort items by updateDate to ensure correct sequence
-            items.sort( (a, b) => {
+            items.sort((a, b) => {
                 const aDate = new Date(a.updateDate || a._updatedDate || a._createdDate);
                 const bDate = new Date(b.updateDate || b._updatedDate || b._createdDate);
                 return aDate - bDate;
@@ -341,10 +341,8 @@ wixdata.query('DemoData')
         });
 
         return count;
-    })
-}
-    .catch((error) => {
+    } catch (error) {
         console.error('Error fetching data for inbound received only count:', error);
         return 0;
-    });
+    }
 }   
