@@ -99,6 +99,7 @@ async function sortDatasetByNewest(dataset) {
 
 export async function reportsInNotReceived(reportsDataset,
     reportsTable,
+    reportsFilterSearch_Input,
     reportsInMenuDropdown,
     primaryMultiState,
     reportsMultiState,
@@ -164,7 +165,7 @@ export async function reportsNotDelivered(reportsDataset,
         { label: 'Not Delivered', value: 'notDelivered' },
         { label: 'All Inbound', value: 'allInbound' },
     ];
-    reportsInMenuDropdown.value = 'inNotReceived';
+    reportsInMenuDropdown.value = 'notDelivered';
 
     return ids.length;
 }
@@ -177,6 +178,7 @@ export async function reportsNotDelivered(reportsDataset,
 
 export async function reportsAllInbound(reportsDataset,
     reportsTable,
+    reportsFilterSearch_Input,
     reportsInMenuDropdown,
     primaryMultiState,
     reportsMultiState,

@@ -202,6 +202,7 @@ mainMenu_Batch_Button.onClick( async () => {
 mainMenu_InNotReceived_Button.onClick( async () => {
     await reportsInNotReceived(reports_ResultsDataset,
         searchResults_Table,
+        null,
         report_InMenuDropdown,
         primaryMultiState,
         reportsMultiState,
@@ -212,6 +213,7 @@ mainMenu_InNotReceived_Button.onClick( async () => {
 mainMenu_NotDelivered_Button.onClick( async () => {
     await reportsNotDelivered(reports_ResultsDataset,
         searchResults_Table,
+        null,
         report_InMenuDropdown,
         primaryMultiState,
         reportsMultiState,
@@ -221,6 +223,7 @@ mainMenu_NotDelivered_Button.onClick( async () => {
 mainMenu_ReportAll_Button.onClick( async () => {
     await reportsAllInbound(reports_ResultsDataset,
         searchResults_Table,
+    null,
         report_InMenuDropdown,
         primaryMultiState,
         reportsMultiState,
