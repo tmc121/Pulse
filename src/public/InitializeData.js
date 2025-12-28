@@ -7,7 +7,7 @@ function normalizeValue(value) {
     return typeof value === 'string' ? value.trim() : value || '';
 }
 
-function buildFilter({ searchValue, typeValue, statusValue, byUserValue, referenceNumber }) {
+function buildFilter({ searchValue = '', typeValue = '', statusValue = '', byUserValue = '', referenceNumber = '' } = {}) {
     let filter = wixData.filter();
 
     const ref = normalizeValue(referenceNumber);

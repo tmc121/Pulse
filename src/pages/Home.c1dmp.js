@@ -262,37 +262,59 @@ await setupDashboardSettingsSection();
 const manageData = [
     {
         buttonLabel: 'Manage Team',
-        linkURL: '/home?state=manageTeamMain1'
+        linkState: 'manageTeamMain1'
     },
     {
         buttonLabel: 'Decisioning Matrix',
-        linkURL: '/home?state=manageProjectsMain1'
+        linkState: 'manageDecisioningMatrixMain1'
     },
     {
         buttonLabel: 'Day Reconcil',
-        linkURL: '/home?state=manageIntegrationsMain1'
+        linkState: 'manageDayReconMain1'
     }
 ];
+// Set UP AN EVENT HANDLER TO NAVIGATE TO THE RESPECTIVE PAGES WHEN MANAGE SECTION DASHBOARD BUTTONS ARE CLICKED
+// THIS WILL BE SET UP BY MATCHING THE BUTTON LABEL TO A VARIABLE THAT WILL USER THE Primary & Reports NAVIGATION FUNCTIONS
 
 async function setupDashboardManageSection() {
     manageSection_Repeater.data = manageData;
     manageSection_Repeater.onItemReady( ($item, itemData, index) => {
         $item('#dashboard-ManageSection-Repeater-ItemButton').label = itemData.buttonLabel;
         $item('#dashboard-ManageSection-Repeater-ItemButton').onClick( async () => {
-            await wixLocationFrontend.to(itemData.linkURL);
+            try {
+                switch (itemData.linkState) {
+                    case 'manageTeamMain1':
+                        await primaryNavigate(primaryMultiState, primary_ManageTeamState);
+                        break;
+                    case 'manageDecisioningMatrixMain1':
+                        // Navigate to Decisioning Matrix page (implement as needed)
+                        console.log('Navigate to Decisioning Matrix page');
+                        break;
+                    case 'manageDayReconMain1':
+                        // Navigate to Day Recon page (implement as needed)
+                        console.log('Navigate to Day Recon page');
+                        break;
+                    default:
+                        console.error('Unknown manage section link state:', itemData.linkState);
+                }
+            } catch (error) {
+                console.error('Error navigating to manage section page:', error);
+            }
         });
+        
     });
+    
 }
 
 // Account Section Repeater Data
 const accountData = [
     {
         buttonLabel: 'My Account',
-        linkURL: '/home?state=myAccountMain1'
+        linkState: 'myAccountMain1'
     },
     {
         buttonLabel: 'My Team',
-        linkURL: '/home?state=teamMain1'
+        linkState: 'teamMain1'
     }
 ];  
 
@@ -303,7 +325,20 @@ async function setupDashboardAccountSection() {
     accountSection_Repeater.onItemReady( ($item, itemData, index) => {
         $item('#dashboard-AccountSection-Repeater-ItemButton').label = itemData.buttonLabel;
         $item('#dashboard-AccountSection-Repeater-ItemButton').onClick( async () => {
-            await wixLocationFrontend.to(itemData.linkURL);
+            try {
+                switch (itemData.linkState) {
+                    case 'myAccountMain1':
+                        await primaryNavigate(primaryMultiState, primary_MyAccountState);
+                        break;
+                    case 'teamMain1':
+                        await primaryNavigate(primaryMultiState, primary_TeamState);
+                        break;
+                    default:
+                        console.error('Unknown account section link state:', itemData.linkState);
+                }
+            } catch (error) {
+                console.error('Error navigating to account section page:', error);
+            }   
         });
     });
 }
@@ -312,15 +347,15 @@ async function setupDashboardAccountSection() {
 const settingsData = [
     {
         buttonLabel: 'About',
-        linkURL: '/home?state=aboutMain1'
+        linkState: 'aboutMain1'
     },
     {
         buttonLabel: 'Security Settings',
-        linkURL: '/home?state=securitySettingsMain1'
+        linkState: 'securitySettingsMain1'
     },
     {
         buttonLabel: 'Help & Support',
-        linkURL: '/home?state=helpMain1'
+        linkState: 'helpMain1'
     }
 ];  
 // SET UP DASHBOARD SETTINGS SECTION
@@ -329,7 +364,23 @@ async function setupDashboardSettingsSection() {
     settingsSection_Repeater.onItemReady( ($item, itemData, index) => {
         $item('#dashboard-SettingsSection-Repeater-ItemButton').label = itemData.buttonLabel;
         $item('#dashboard-SettingsSection-Repeater-ItemButton').onClick( async () => {
-            await wixLocationFrontend.to(itemData.linkURL);
+            try {
+                switch (itemData.linkState) {
+                    case 'aboutMain1':
+                        wixWindowFrontend.openLightbox('AboutLightbox');
+                        break;
+                    case 'securitySettingsMain1':
+                        wixWindowFrontend.openLightbox('SecuritySettingsLightbox');
+                        break;
+                    case 'helpMain1':
+                        wixWindowFrontend.openLightbox('HelpSupportLightbox');
+                        break;
+                    default:
+                        console.error('Unknown settings section link state:', itemData.linkState);
+                }
+            } catch (error) {
+                console.error('Error navigating to settings section page:', error);
+            }   
         });
     });
 }

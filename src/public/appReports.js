@@ -20,7 +20,7 @@ import { primaryNavigate, reportsNavigate } from 'public/appNavigation';
 
 const REPORT_PAGE_SIZE = 1000;
 
-async function fetchLatestByReference({ searchValue, typeValue, statusValue, byUserValue, statusExclusion }) {
+async function fetchLatestByReference({ searchValue = '', typeValue = '', statusValue = '', byUserValue = '', statusExclusion = '' } = {}) {
     const opts = { suppressAuth: true, suppressHooks: true };
     let query = wixData
         .query('DemoData')
@@ -72,7 +72,7 @@ async function fetchLatestByReference({ searchValue, typeValue, statusValue, byU
     return valid;
 }
 
-async function fetchNotDeliveredAfterReceived({ searchValue, typeValue, statusValue, byUserValue }) {
+async function fetchNotDeliveredAfterReceived({ searchValue = '', typeValue = '', statusValue = '', byUserValue = '' } = {}) {
     const opts = { suppressAuth: true, suppressHooks: true };
     let query = wixData
         .query('DemoData')
@@ -128,7 +128,7 @@ async function fetchNotDeliveredAfterReceived({ searchValue, typeValue, statusVa
         items.sort((a, b) => {
             const aDate = new Date(a.updateDate || a._updatedDate || a._createdDate);
             const bDate = new Date(b.updateDate || b._updatedDate || b._createdDate);
-            return aDate - bDate;
+            return aDate.getTime() - bDate.getTime();
         });
         
         for (const item of items) {
@@ -323,7 +323,7 @@ export async function getInboundReceivedOnlyCount() {
             items.sort((a, b) => {
                 const aDate = new Date(a.updateDate || a._updatedDate || a._createdDate);
                 const bDate = new Date(b.updateDate || b._updatedDate || b._createdDate);
-                return aDate - bDate;
+                return aDate.getTime() - bDate.getTime();
             });
 
             for (const item of items) {
