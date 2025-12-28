@@ -40,18 +40,30 @@ async function setupQuickMenu() {
 
     main_QuickMenu_Button_Account.label = 'Account';
     main_QuickMenu_Button_Account.onClick( async () => {
-        
-        
+        try {
+        wixLocationFrontend.to('/home?state=myAccountMain1');
+        } catch (error) {
+            console.error('Error navigating to My Account page:', error);
+        }
     });
 
     main_QuickMenu_Button_Team.label = 'My Team';
     main_QuickMenu_Button_Team.onClick( async () => {
-        
+        try {
+        wixLocationFrontend.to('/home?state=teamMain1');
+        } catch (error) {
+            console.error('Error navigating to My Team page:', error);
+        }
     });
 
     main_QuickMenu_Button_Manage.label = 'Manage Team';
     main_QuickMenu_Button_Manage.onClick( async () => {
-       
+        try {
+        wixLocationFrontend.to('/home?state=manageTeamMain1');
+        } catch (error) {
+            console.error('Error navigating to Manage Team page:', error);
+        }
+    });
 
     main_QuickMenu_Button_Logout.label = 'Logout';
     main_QuickMenu_Button_Logout.onClick( async () => {
