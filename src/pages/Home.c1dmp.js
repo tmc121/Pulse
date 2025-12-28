@@ -5,7 +5,7 @@ import wixWindowFrontend from 'wix-window-frontend';
 
 //IMPORTS
 import { primaryNavigate, reportsNavigate } from 'public/appNavigation.js';
-import { initializeSearch, initializeSearchSelected } from 'public/InitializeData.js';
+import { initializeSearch, initializeSearchSelected, setupCreateOrEditReference } from 'public/InitializeData.js';
 import { reportsInNotReceived, reportsNotDelivered, reportsAllInbound  } from 'public/appReports.js';
 
 // MULTISTATE BOXES
@@ -232,5 +232,11 @@ mainMenu_ReportAll_Button.onClick( async () => {
 // CREATE REFERENCE BUTTON
 mainMenu_CreateReference_Button.onClick( async () => {
     await primaryNavigate(primaryMultiState, primary_CreateReferenceState);
+    await setupCreateOrEditReference(createReference_Dataset,
+        createReference_RefNumber_Input,
+        createReference_Type_Input,
+        createReference_Status_Input,
+        createReference_ByUser_Input,
+        createReference_SubmitButton);
 });
 

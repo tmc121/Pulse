@@ -185,3 +185,68 @@ export async function initializeSearchSelected(
     filterByUserDropdown.disable();
     await applySelectedFilters();
 }
+
+
+
+// SET UP THE CREATE REFERENCE TO ADD NEW REFERENCE FUNCTIONALITY OR UPDATE EXISTING REFERENCE FUNCTIONALITY
+// IF A REFERENCE NUMBER IS PASSED IN, IT WILL LOAD THAT REFERENCE FOR EDITING
+// IF NO REFERENCE NUMBER IS PASSED IN, IT WILL SET UP THE FORM FOR A NEW REFERENCE
+export async function setupCreateOrEditReference(
+    createDataset,
+    referenceNumberInput,
+    referenceTypeInput,
+    statusInput,
+    addedByUserInput,
+    submitButton
+) {
+    const refNumber = referenceNumberInput?.value?.toString().trim() || '';
+
+    if (refNumber) {
+        // EDIT EXISTING REFERENCE
+        await createDataset.setFilter(
+            wixData.filter().eq('referenceNumber', refNumber)
+        );
+        await createDataset.refresh();
+        if (createDataset.getTotalCount() > 0) {
+            await createDataset.setCurrentItemIndex(0);
+        }
+    } else {
+        // NEW REFERENCE
+        await createDataset.clear();
+        await createDataset.new();
+    }
+
+
+    //SET UP TYPE FILTER DROPDOWN
+    referenceTypeInput.onChange( async () => {
+        const typeValue = referenceTypeInput.value;
+        if (typeValue) {
+            await createDataset.setFieldValue('referenceType', typeValue);
+        }
+    });
+
+    //SET UP STATUS FILTER DROPDOWN
+    statusInput.onChange( async () => {
+        const statusValue = statusInput.value;
+        if (statusValue) {
+            await createDataset.setFieldValue('status', statusValue);
+        }
+    });
+
+    //SET UP ADDED BY USER FILTER DROPDOWN
+    //WILL GET THE OF THE CURRENT USER LOGGED IN AND SET IT AS THE ADDED BY USER VALUE
+    //EXAMPLE: ABC123 
+    addedByUserInput.onChange( async () => {
+        const byUserValue = addedByUserInput.value;
+        if (byUserValue) {
+            await createDataset.setFieldValue('addedByUser', byUserValue);
+        }
+    });
+
+    //SET UP SUBMIT BUTTON FUNCTIONALITY
+    submitButton.onClick( async () => {
+        await createDataset.save();
+        // Optionally, you can add code here to navigate away or show a success message 
+    });
+}
+// END OF FILE src/public/InitializeData.js
