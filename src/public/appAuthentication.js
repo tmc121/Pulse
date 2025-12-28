@@ -100,9 +100,17 @@ export async function handleOnLogin(headerLoginOutButton, headerQuickMenu) {
         headerLoginOutButton.label = userAccount.firstName + " " + userAccount.lastName || "Account";
         headerLoginOutButton.onClick( async () => {
             try {
-                headerQuickMenu.expand();
+                // For logged-in users, toggle the quick menu
+                if (headerQuickMenu.collapsed) {
+                    headerQuickMenu.expand();
+                } else {
+                    headerQuickMenu.collapse();
+                }
+                headerQuickMenu.onMouseOut( () => {
+                    headerQuickMenu.collapse();
+                });
             } catch (error) {
-                console.error("Error expanding header quick menu on login:", error);
+                console.error("Error toggling header quick menu on login:", error);
             }
         });
         
@@ -124,12 +132,13 @@ export async function handleOnLogout(headerLoginOutButton, headerQuickMenu) {
         headerLoginOutButton.label = "SignUp/Login"; // Reset label to default
         headerLoginOutButton.onClick( async () => {
             try {
-                // Prompt Login
+                // For logged-out users, prompt login instead of opening menu
                 let options = {"mode": "login", "modal": true};
                 await authentication.promptLogin(options);
+                // Ensure menu stays collapsed when not logged in
                 headerQuickMenu.collapse();
             } catch (error) {
-                console.error("Error collapsing header quick menu on logout:", error);
+                console.error("Error prompting login on logout:", error);
             }
         });
     } catch (error) {

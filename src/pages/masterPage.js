@@ -73,17 +73,10 @@ $w.onReady( async function () {
 
 // SET UP QUICKMENU FUNCTIONALITY
 async function setupQuickMenu() {
+    // Initial setup - the actual onClick behavior will be set by handleOnLogin/handleOnLogout
     main_loginUserName_Button.label = "SignUp/Login";
-    main_loginUserName_Button.onClick(async () => {
-        if (main_Header_Menu_Wrapper.collapsed) {
-            main_Header_Menu_Wrapper.expand();
-        } else {
-            main_Header_Menu_Wrapper.collapse();
-        }
-        main_Header_Menu_Wrapper.onMouseOut( () => {
-            main_Header_Menu_Wrapper.collapse();
-        });
-    });
+    
+    // Set up the menu items (these are always available when menu is open)
 
     main_QuickMenu_Button_Account.label = 'Account';
     main_QuickMenu_Button_Account.onClick( async () => {
