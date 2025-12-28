@@ -26,6 +26,30 @@ const main_QuickMenu_Button_Logout = $w('#header-QuickMenu-Button-Logout');
 $w.onReady( async function () {
     // SET UP QUICKMENU FUNCTIONALITY
     await setupQuickMenu();
+
+    // Update header state immediately when auth changes (login modal, etc.)
+    authentication.onLogin(async () => {
+        try {
+            const validation = await validateFreshLogin();
+            if (!validation.isValid) {
+                if (validation.action === 'LOGOUT_REQUIRED') {
+                    await logoutCurrentUser(main_loginUserName_Button, main_Header_Menu_Wrapper);
+                }
+                return;
+            }
+            await handleOnLogin(main_loginUserName_Button, main_Header_Menu_Wrapper);
+        } catch (error) {
+            console.error('Error handling onLogin event:', error);
+        }
+    });
+
+    authentication.onLogout(async () => {
+        try {
+            await handleOnLogout(main_loginUserName_Button, main_Header_Menu_Wrapper);
+        } catch (error) {
+            console.error('Error handling onLogout event:', error);
+        }
+    });
     
     // CHECK IF A MEMBER IS LOGGED IN
     const memberId =  await getLoggedInMemberId();

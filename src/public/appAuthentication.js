@@ -4,7 +4,7 @@
 // IMPORTS
 import wixLocationFrontend from 'wix-location-frontend';
 import wixWindowFrontend from 'wix-window-frontend';
-import { authentication, currentMember } from 'wix-members';
+import { authentication, currentMember } from 'wix-members-frontend';
 import { getUserAccountByMemberId, validateUserAccountAccess } from 'public/UserAccounts-Auth.js';
 
 // THIS FILE WILL CONTAIN ALL FUNCTIONS RELATED TO APP AUTHENTICATION
