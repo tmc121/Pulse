@@ -8,6 +8,7 @@ import { primaryNavigate, reportsNavigate } from 'public/appNavigation.js';
 import { initializeSearch, initializeSearchSelected, setupCreateOrEditReference } from 'public/InitializeData.js';
 import { reportsInNotReceived, reportsNotDelivered, reportsAllInbound ,getInboundReceivedOnlyCount} from 'public/appReports.js';
 import { validateFreshLogin } from 'public/appAuthentication.js';
+import { loadUserAccountPageData } from 'public/appMyAccount.js';
 import { search } from 'wix-search';
 
 // MULTISTATE BOXES
@@ -298,9 +299,18 @@ await setupDashboardManageSection();
 // SET UP DASHBOARD ACCOUNT SECTION
 await setupDashboardAccountSection();
 // SET UP DASHBOARD SETTINGS SECTION
-await setupDashboardSettingsSection(); 
-
-
+await setupDashboardSettingsSection();
+// LOAD MY ACCOUNT PAGE DATA INTO INPUT FIELDS
+await loadUserAccountPageData(
+    myAccount_FullName_DisplayText,
+    myAccount_Email_DisplayText,
+    myAccount_UserId_DisplayText,
+    myAccount_StatusDisplay_Button,
+    myAccount_Options_Repeater,
+    myAccount_Options_Repeater_Item_Button,
+    myAccount_UpdatePassword_Button,
+    myAccount_Exit_Button,
+    primaryMultiState);
 });
 
 // SET UP DASHBOARD MANAGEMENT SECTION
@@ -376,6 +386,16 @@ async function setupDashboardAccountSection() {
                 switch (itemData.linkState) {
                     case 'myAccountMain1':
                         await primaryNavigate(primaryMultiState, primary_MyAccountState);
+                        await loadUserAccountPageData(
+                            myAccount_FullName_DisplayText,
+                            myAccount_Email_DisplayText,
+                            myAccount_UserId_DisplayText,
+                            myAccount_StatusDisplay_Button,
+                            myAccount_Options_Repeater,
+                            myAccount_Options_Repeater_Item_Button,
+                            myAccount_UpdatePassword_Button,
+                            myAccount_Exit_Button,
+                            primaryMultiState);
                         break;
                     case 'teamMain1':
                         await primaryNavigate(primaryMultiState, primary_TeamState);
