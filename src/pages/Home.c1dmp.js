@@ -49,6 +49,7 @@ const searchStatusInput = $w('#searchData-StatusDropdown-Input');
 const searchByUserInput = $w('#searchData-ByUserDropdown-Input');
 const searchSubmitButton = $w('#searchData-Submit-SearchButton');
 const searchResults_Table = $w('#table2');
+let searchInputDebounce;
 
 // SELECTED REFERENCE DATA STATE CONSTANTS 
 // THIS CODE IS USED WHEN AN ITEM FROM A TABLE IS SELECTED THE ITEMS FIELD referenceNumber will be queried to retrieve the path of the referencedNumber added to the collection.
@@ -185,33 +186,28 @@ $w.onReady( async function () {
         }
     }
 
-    // SEARCH ON INPUT
-    searchInput.onInput( async () => {
-    await primaryNavigate(primaryMultiState, primary_SearchState);
-    await initializeSearch(search_Dataset,
-        searchResults_Table,
-        searchInput,
-        searchTypeInput,
-        searchStatusInput,
-        searchByUserInput,
-        selectedReferenced_Dataset,
-        async (referenceNumber) => {
-            // Update the reference display and navigate to the reference path state
-            selectedReferenced_ReferenceNumber_Display.text = referenceNumber ? `${referenceNumber}` : 'Reference: N/A';
-            await primaryNavigate(primaryMultiState, primary_ReferencedPathState);
-        });
-});
+    // SEARCH ON INPUT (debounced to avoid rapid state flips)
+    searchInput.onInput(() => {
+        if (searchInputDebounce) {
+            clearTimeout(searchInputDebounce);
+        }
+        searchInputDebounce = setTimeout(async () => {
+            await primaryNavigate(primaryMultiState, primary_SearchState);
+            await initializeSearch(search_Dataset,
+                searchResults_Table,
+                searchInput,
+                searchTypeInput,
+                searchStatusInput,
+                searchByUserInput,
+                selectedReferenced_Dataset,
+                async (referenceNumber) => {
+                    // Update the reference display and navigate to the reference path state
+                    selectedReferenced_ReferenceNumber_Display.text = referenceNumber ? `${referenceNumber}` : 'Reference: N/A';
+                    await primaryNavigate(primaryMultiState, primary_ReferencedPathState);
+                });
+        }, 250); // Adjust debounce delay as needed
+    });
 
-// SEARCH SUBMIT BUTTON
-searchSubmitButton.onClick( async () => {
-    await primaryNavigate(primaryMultiState, primary_SearchState);
-    await initializeSearchSelected(selectedReferenced_Dataset,
-        selectedReference_Table,
-        selectedReferenced_ReferenceNumber_Display,
-        selectedReferenced_Filter_Type_Dropdown,
-        selectedReferenced_Filter_Status_Dropdown,
-        selectedReferenced_Filter_ByUser_Dropdown);
-});
 
 // SET MAIN NAVIGATION MENU
 // SET BUTTONS TO NAVIGATE TO DIFFERENT PAGES
@@ -236,7 +232,7 @@ mainMenu_Search_Button.onClick( async () => {
             await primaryNavigate(primaryMultiState, primary_ReferencedPathState);
         });
 });
-// SEARCH SUBMIT BUTTON
+// SEARCH SUBMIT BUTTON (single handler)
 searchSubmitButton.onClick( async () => {
     await primaryNavigate(primaryMultiState, primary_SearchState);
     await initializeSearchSelected(selectedReferenced_Dataset,
