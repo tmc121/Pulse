@@ -234,13 +234,15 @@ mainMenu_ReportAll_Button.onClick( async () => {
 // CREATE REFERENCE BUTTON
 mainMenu_CreateReference_Button.onClick( async () => {
     await primaryNavigate(primaryMultiState, primary_CreateReferenceState);
-    await setupCreateOrEditReference(createReference_Dataset,
-        createReference_RefNumber_Input,
-        createReference_Type_Input,
-        createReference_Status_Input,
-        createReference_ByUser_Input,
-        createReference_SubmitButton);
 });
+
+// Initialize the create reference functionality during page load
+await setupCreateOrEditReference(createReference_Dataset,
+    createReference_RefNumber_Input,
+    createReference_Type_Input,
+    createReference_Status_Input,
+    createReference_ByUser_Input,
+    createReference_SubmitButton);
 
 totalInbound_Display.text = await getInboundReceivedOnlyCount() + '';
 
