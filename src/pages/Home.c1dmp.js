@@ -6,7 +6,7 @@ import wixWindowFrontend from 'wix-window-frontend';
 //IMPORTS
 import { primaryNavigate, reportsNavigate } from 'public/appNavigation.js';
 import { initializeSearch, initializeSearchSelected, setupCreateOrEditReference, getInboundReceivedOnlyCount } from 'public/InitializeData.js';
-import { reportsInNotReceived, reportsNotDelivered, reportsAllInbound  } from 'public/appReports.js';
+import { reportsInNotReceived, reportsNotDelivered, reportsAllInbound ,getInboundReceivedOnlyCount} from 'public/appReports.js';
 
 // MULTISTATE BOXES
 
@@ -242,7 +242,7 @@ mainMenu_CreateReference_Button.onClick( async () => {
         createReference_SubmitButton);
 });
 
-totalInbound_Display.text = await getInboundReceivedOnlyCount();
+totalInbound_Display.text = await getInboundReceivedOnlyCount() + '';
 
 
 });
