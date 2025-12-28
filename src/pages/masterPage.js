@@ -22,8 +22,33 @@ const main_QuickMenu_Button_Team = $w('#header-QuickMenu-Button-Team');
 const main_QuickMenu_Button_Manage = $w('#header-QuickMenu-Button-Manage');
 const main_QuickMenu_Button_Logout = $w('#header-QuickMenu-Button-Logout');
 
+const main_LogoBox = $w('#box18'); // ON CLICK ON THESE WILL REFRESH THE APP TO HOME STATE DASHBOARD
+const main_LogoTile = $w('#text5'); // ON CLICK ON THESE WILL REFRESH THE APP TO HOME STATE DASHBOARD
+
+
+
 
 $w.onReady( async function () {
+    // LOGO CLICK HANDLER TO REFRESH TO DASHBOARD MAIN
+main_LogoBox.onClick( async () => {
+    try {
+        wixLocationFrontend.to('/home?state=dashboardMain1');
+        wixLocationFrontend.to(wixLocationFrontend.url);
+    } catch (error) {
+        console.error('Error navigating to Home Dashboard page:', error);
+    }
+});
+
+main_LogoTile.onClick( async () => {
+    try {
+        wixLocationFrontend.to('/home?state=dashboardMain1');
+        wixLocationFrontend.to(wixLocationFrontend.url);
+    } catch (error) {
+        console.error('Error navigating to Home Dashboard page:', error);
+    }
+});
+
+
     // SET UP QUICKMENU FUNCTIONALITY
     await setupQuickMenu();
 
