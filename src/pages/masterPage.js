@@ -84,7 +84,7 @@ async function setupQuickMenu() {
     
     // Set up the menu items (these are always available when menu is open)
 
-    main_QuickMenu_Button_Account.label = 'Account';
+    main_QuickMenu_Button_Account.label = 'My Account';
     main_QuickMenu_Button_Account.onClick( async () => {
         try {
         wixLocationFrontend.to('/home?state=myAccountMain1');
