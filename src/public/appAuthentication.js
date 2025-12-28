@@ -133,34 +133,6 @@ export async function handleOnLogout(headerLoginOutButton, headerQuickMenu) {
 }
 
 
-// THIS FUNCTION WILL HANDLE LOGGED-IN MEMBERS
-
-export async function validateUserAccountAccess(memberId) {
-    try {
-        const userAccount = await getUserAccountByMemberId(memberId);
-        if (!userAccount) {
-            return { isValid: false, reason: 'NO_USER_ACCOUNT', message: 'No user account found for this member.' };
-        }
-        
-        // Check if the user account is active
-        if (userAccount.status !== 'Active') {
-            return { isValid: false, reason: 'INACTIVE_ACCOUNT', message: 'Your account is not active. Please contact support.' };
-        }
-        
-        // Check if the user is assigned to a team admin
-        if (!userAccount.teamAdmin || (Array.isArray(userAccount.teamAdmin) && userAccount.teamAdmin.length === 0)) {
-            return { isValid: false, reason: 'TEAM_ASSIGNMENT_REQUIRED', requiresTeamAssignment: true, message: 'You need to be assigned to a team. Please set up your team.' };
-        }
-        
-        // All checks passed; user has valid access
-        return { isValid: true, account: userAccount };
-        
-    } catch (error) {
-        console.error("Error validating user account access:", error);
-        throw error; // Rethrow the error for further handling if needed
-    }
-}
-
 // THIS FUNCTION WILL CHECK IF MEMBER USER ACCOUNT IS AN ADMIN ACCOUNT
 // CALLERS CAN USE THIS RESULT TO SUPPRESS DATA HOOKS AND AUTHENTICATION CHECKS FOR ADMIN ACCOUNTS IF NEEDED
 // RETURNS TRUE IF ADMIN ACCOUNT, FALSE IF NOT
