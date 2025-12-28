@@ -55,7 +55,7 @@ $w.onReady(function () {
           firstName: firstName,
           lastName: lastName,
           status: 'Active', // Default status
-          teamAdmin: '', // Leave blank. When member completes registration the Get Team  popup should be shown after sign up and or login when the userAccount does not have a team admin selected or is not an adminAccount(true). 
+          teamAdmin: [], // Leave empty array; Get Team will add one or more admin refs later
           adminAccount: false, // New users are not admin accounts by default
           createdDate: new Date(),
           _updatedDate: new Date()

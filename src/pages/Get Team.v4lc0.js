@@ -97,10 +97,21 @@ $w.onReady(async function () {
         .eq('connectedMemberId', member._id)
         .find({ suppressAuth: true, suppressHooks: true });
 
-      if (results.items && results.items.length > 0) {
+        if (results.items && results.items.length > 0) {
         const userAccount = results.items[0];
-        // Multi-reference expects an array; enforce single admin link
-        userAccount.teamAdmin = [account._id];
+        // Multi-reference expects an array; allow multiple admins while deduping
+        const existingAdmins = Array.isArray(userAccount.teamAdmin)
+          ? userAccount.teamAdmin.filter(Boolean)
+          : userAccount.teamAdmin
+            ? [userAccount.teamAdmin]
+            : [];
+
+        // Only add if not already present
+        const updatedAdmins = existingAdmins.includes(account._id)
+          ? existingAdmins
+          : [...existingAdmins, account._id];
+
+        userAccount.teamAdmin = updatedAdmins;
         userAccount.teamAdminId = adminUserId;
         userAccount._updatedDate = new Date();
 

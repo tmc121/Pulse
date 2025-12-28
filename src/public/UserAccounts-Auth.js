@@ -6,7 +6,7 @@
 
 //IMPORTS
 import wixData from 'wix-data';
-import { authentication, currentMember } from 'wix-members';
+import { authentication, currentMember } from 'wix-members-frontend';
 
 
 // THIS FUNCTION WILL QUERY & CHECK FOR A USER ACCOUNT
@@ -142,7 +142,12 @@ export async function validateUserAccountAccess(memberId){
         }
         
         // Check if user has team admin assigned or is an admin themselves
-        const hasTeamAdmin = userAccount.teamAdmin && userAccount.teamAdmin.length > 0;
+        const teamAdmins = Array.isArray(userAccount.teamAdmin)
+            ? userAccount.teamAdmin.filter(Boolean)
+            : userAccount.teamAdmin
+                ? [userAccount.teamAdmin]
+                : [];
+        const hasTeamAdmin = teamAdmins.length > 0;
         const isAdminAccount = userAccount.adminAccount === true;
         
         if (!hasTeamAdmin && !isAdminAccount) {
