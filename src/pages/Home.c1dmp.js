@@ -179,7 +179,8 @@ mainMenu_Search_Button.onClick( async () => {
         searchByUserInput,
         selectedReferenced_Dataset,
         async (referenceNumber) => {
-            // Navigate to the reference path state when a reference is selected
+            // Update the reference display and navigate to the reference path state
+            selectedReferenced_ReferenceNumber_Display.text = referenceNumber ? `Reference: ${referenceNumber}` : 'Reference: N/A';
             await primaryNavigate(primaryMultiState, primary_ReferencedPathState);
         });
 });

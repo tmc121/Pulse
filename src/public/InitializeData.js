@@ -133,7 +133,6 @@ export async function initializeSearch(
                 selectedDataset,
                 buildFilter({ referenceNumber: ref })
             );
-            updateReferenceDisplay(null, ref);
         }
 
         if (typeof onReferenceSelect === 'function') {
@@ -179,8 +178,9 @@ export async function initializeSearchSelected(
         );
         updateReferenceDisplay(selectedReferenceDisplay, ref);
     });
+    
     await applySelectedFilters();
-    selectedReferenced_ReferenceNumber_Display.text = referenceNumber ? `Reference: ${referenceNumber}` : 'Reference: N/A'; 
+} 
 }
 
 
