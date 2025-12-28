@@ -140,42 +140,48 @@ export async function initializeSearch(
         }
     });
     // Set up filter options for search filters
-    searchTypeInput.options = [
-        { label: '-', value: '' },
-        { label: 'USPS', value: 'USPS' },
-        { label: 'USPS - FIRST CLASS', value: 'USPS - FIRST CLASS' },
-        { label: 'USPS - EXPRESS', value: 'USPS - EXPRESS' },
-        { label: 'FEDEX-E', value: 'FEDEX EXPRESS' },
-        { label: 'FEDEX-G', value: 'FEDEX GROUND' },
-        { label: 'DHL', value: 'DHL' },
-        { label: 'UPS', value: 'UPS' },
-        { label: 'UPS - GROUND', value: 'UPS - GROUND' },
-        { label: 'UPS - AIR', value: 'UPS - AIR' },
-        { label: 'AMAZON', value: 'AMAZON' },
-        { label: 'STAPLES', value: 'STAPLES' },
-        { label: 'OTHER', value: 'OTHER' },
-    ];
+    if (searchTypeInput && searchTypeInput.options !== undefined) {
+        searchTypeInput.options = [
+            { label: '-', value: '' },
+            { label: 'USPS', value: 'USPS' },
+            { label: 'USPS - FIRST CLASS', value: 'USPS - FIRST CLASS' },
+            { label: 'USPS - EXPRESS', value: 'USPS - EXPRESS' },
+            { label: 'FEDEX-E', value: 'FEDEX EXPRESS' },
+            { label: 'FEDEX-G', value: 'FEDEX GROUND' },
+            { label: 'DHL', value: 'DHL' },
+            { label: 'UPS', value: 'UPS' },
+            { label: 'UPS - GROUND', value: 'UPS - GROUND' },
+            { label: 'UPS - AIR', value: 'UPS - AIR' },
+            { label: 'AMAZON', value: 'AMAZON' },
+            { label: 'STAPLES', value: 'STAPLES' },
+            { label: 'OTHER', value: 'OTHER' },
+        ];
+    }
 
-    searchStatusInput.options = [
-        { label: '-', value: '' },
-        { label: 'Inbound Received', value: 'Inbound Received' },
-        { label: 'Inbound Department', value: 'Inbound Department' },
-        { label: 'Inbound Associate', value: 'Inbound Associate' },
-        { label: 'Inbound Service', value: 'Inbound Service' },
-        { label: 'Hold Over Location', value: 'Hold Over Location' },
-        { label: 'Late Received', value: 'Late Received' },
-        { label: 'Delivery Attempt', value: 'Delivery Attempt' },
-        { label: 'Delivered', value: 'Delivered' },
-        { label: 'Outbound Received', value: 'Outbound Received' },
-        { label: 'Outbound Carrier', value: 'Outbound Carrier' },
-        { label: 'Inventory', value: 'Marked Inventoried' },
-        { label: 'Decisioning', value: 'Decisioning' },
-        { label: 'Returned Inbound', value: 'Returned Inbound' },
-    ];
+    if (searchStatusInput && searchStatusInput.options !== undefined) {
+        searchStatusInput.options = [
+            { label: '-', value: '' },
+            { label: 'Inbound Received', value: 'Inbound Received' },
+            { label: 'Inbound Department', value: 'Inbound Department' },
+            { label: 'Inbound Associate', value: 'Inbound Associate' },
+            { label: 'Inbound Service', value: 'Inbound Service' },
+            { label: 'Hold Over Location', value: 'Hold Over Location' },
+            { label: 'Late Received', value: 'Late Received' },
+            { label: 'Delivery Attempt', value: 'Delivery Attempt' },
+            { label: 'Delivered', value: 'Delivered' },
+            { label: 'Outbound Received', value: 'Outbound Received' },
+            { label: 'Outbound Carrier', value: 'Outbound Carrier' },
+            { label: 'Inventory', value: 'Marked Inventoried' },
+            { label: 'Decisioning', value: 'Decisioning' },
+            { label: 'Returned Inbound', value: 'Returned Inbound' },
+        ];
+    }
 
-    searchByUserInput.options = [
-        { label: 'Not available', value: '' },
-    ];
+    if (searchByUserInput && searchByUserInput.options !== undefined) {
+        searchByUserInput.options = [
+            { label: 'Not available', value: '' },
+        ];
+    }
     
     await applySearchFilters();
 
@@ -218,42 +224,48 @@ export async function initializeSearchSelected(
     });
     
     // Set up filter options for selected reference filters
-    filterTypeDropdown.options = [
-        { label: '-', value: '' },
-        { label: 'USPS', value: 'USPS' },
-        { label: 'USPS - FIRST CLASS', value: 'USPS - FIRST CLASS' },
-        { label: 'USPS - EXPRESS', value: 'USPS - EXPRESS' },
-        { label: 'FEDEX-E', value: 'FEDEX EXPRESS' },
-        { label: 'FEDEX-G', value: 'FEDEX GROUND' },
-        { label: 'DHL', value: 'DHL' },
-        { label: 'UPS', value: 'UPS' },
-        { label: 'UPS - GROUND', value: 'UPS - GROUND' },
-        { label: 'UPS - AIR', value: 'UPS - AIR' },
-        { label: 'AMAZON', value: 'AMAZON' },
-        { label: 'STAPLES', value: 'STAPLES' },
-        { label: 'OTHER', value: 'OTHER' },
-    ];
+    if (filterTypeDropdown && filterTypeDropdown.options !== undefined) {
+        filterTypeDropdown.options = [
+            { label: '-', value: '' },
+            { label: 'USPS', value: 'USPS' },
+            { label: 'USPS - FIRST CLASS', value: 'USPS - FIRST CLASS' },
+            { label: 'USPS - EXPRESS', value: 'USPS - EXPRESS' },
+            { label: 'FEDEX-E', value: 'FEDEX EXPRESS' },
+            { label: 'FEDEX-G', value: 'FEDEX GROUND' },
+            { label: 'DHL', value: 'DHL' },
+            { label: 'UPS', value: 'UPS' },
+            { label: 'UPS - GROUND', value: 'UPS - GROUND' },
+            { label: 'UPS - AIR', value: 'UPS - AIR' },
+            { label: 'AMAZON', value: 'AMAZON' },
+            { label: 'STAPLES', value: 'STAPLES' },
+            { label: 'OTHER', value: 'OTHER' },
+        ];
+    }
 
-    filterStatusDropdown.options = [
-        { label: '-', value: '' },
-        { label: 'Inbound Received', value: 'Inbound Received' },
-        { label: 'Inbound Department', value: 'Inbound Department' },
-        { label: 'Inbound Associate', value: 'Inbound Associate' },
-        { label: 'Inbound Service', value: 'Inbound Service' },
-        { label: 'Hold Over Location', value: 'Hold Over Location' },
-        { label: 'Late Received', value: 'Late Received' },
-        { label: 'Delivery Attempt', value: 'Delivery Attempt' },
-        { label: 'Delivered', value: 'Delivered' },
-        { label: 'Outbound Received', value: 'Outbound Received' },
-        { label: 'Outbound Carrier', value: 'Outbound Carrier' },
-        { label: 'Inventory', value: 'Marked Inventoried' },
-        { label: 'Decisioning', value: 'Decisioning' },
-        { label: 'Returned Inbound', value: 'Returned Inbound' },
-    ];
+    if (filterStatusDropdown && filterStatusDropdown.options !== undefined) {
+        filterStatusDropdown.options = [
+            { label: '-', value: '' },
+            { label: 'Inbound Received', value: 'Inbound Received' },
+            { label: 'Inbound Department', value: 'Inbound Department' },
+            { label: 'Inbound Associate', value: 'Inbound Associate' },
+            { label: 'Inbound Service', value: 'Inbound Service' },
+            { label: 'Hold Over Location', value: 'Hold Over Location' },
+            { label: 'Late Received', value: 'Late Received' },
+            { label: 'Delivery Attempt', value: 'Delivery Attempt' },
+            { label: 'Delivered', value: 'Delivered' },
+            { label: 'Outbound Received', value: 'Outbound Received' },
+            { label: 'Outbound Carrier', value: 'Outbound Carrier' },
+            { label: 'Inventory', value: 'Marked Inventoried' },
+            { label: 'Decisioning', value: 'Decisioning' },
+            { label: 'Returned Inbound', value: 'Returned Inbound' },
+        ];
+    }
 
-    filterByUserDropdown.options = [
-        { label: 'Not available', value: '' },
-    ];
+    if (filterByUserDropdown && filterByUserDropdown.options !== undefined) {
+        filterByUserDropdown.options = [
+            { label: 'Not available', value: '' },
+        ];
+    }
     
     await applySelectedFilters();
 }
@@ -272,42 +284,48 @@ export async function setupCreateOrEditReference(
     submitButton
 ) {
     // Set up filter options for create reference form first
-    referenceTypeInput.options = [
-        { label: '-', value: '' },
-        { label: 'USPS', value: 'USPS' },
-        { label: 'USPS - FIRST CLASS', value: 'USPS - FIRST CLASS' },
-        { label: 'USPS - EXPRESS', value: 'USPS - EXPRESS' },
-        { label: 'FEDEX-E', value: 'FEDEX EXPRESS' },
-        { label: 'FEDEX-G', value: 'FEDEX GROUND' },
-        { label: 'DHL', value: 'DHL' },
-        { label: 'UPS', value: 'UPS' },
-        { label: 'UPS - GROUND', value: 'UPS - GROUND' },
-        { label: 'UPS - AIR', value: 'UPS - AIR' },
-        { label: 'AMAZON', value: 'AMAZON' },
-        { label: 'STAPLES', value: 'STAPLES' },
-        { label: 'OTHER', value: 'OTHER' },
-    ];
+    if (referenceTypeInput && referenceTypeInput.options !== undefined) {
+        referenceTypeInput.options = [
+            { label: '-', value: '' },
+            { label: 'USPS', value: 'USPS' },
+            { label: 'USPS - FIRST CLASS', value: 'USPS - FIRST CLASS' },
+            { label: 'USPS - EXPRESS', value: 'USPS - EXPRESS' },
+            { label: 'FEDEX-E', value: 'FEDEX EXPRESS' },
+            { label: 'FEDEX-G', value: 'FEDEX GROUND' },
+            { label: 'DHL', value: 'DHL' },
+            { label: 'UPS', value: 'UPS' },
+            { label: 'UPS - GROUND', value: 'UPS - GROUND' },
+            { label: 'UPS - AIR', value: 'UPS - AIR' },
+            { label: 'AMAZON', value: 'AMAZON' },
+            { label: 'STAPLES', value: 'STAPLES' },
+            { label: 'OTHER', value: 'OTHER' },
+        ];
+    }
 
-    statusInput.options = [
-        { label: '-', value: '' },
-        { label: 'Inbound Received', value: 'Inbound Received' },
-        { label: 'Inbound Department', value: 'Inbound Department' },
-        { label: 'Inbound Associate', value: 'Inbound Associate' },
-        { label: 'Inbound Service', value: 'Inbound Service' },
-        { label: 'Hold Over Location', value: 'Hold Over Location' },
-        { label: 'Late Received', value: 'Late Received' },
-        { label: 'Delivery Attempt', value: 'Delivery Attempt' },
-        { label: 'Delivered', value: 'Delivered' },
-        { label: 'Outbound Received', value: 'Outbound Received' },
-        { label: 'Outbound Carrier', value: 'Outbound Carrier' },
-        { label: 'Inventory', value: 'Marked Inventoried' },
-        { label: 'Decisioning', value: 'Decisioning' },
-        { label: 'Returned Inbound', value: 'Returned Inbound' },
-    ];
+    if (statusInput && statusInput.options !== undefined) {
+        statusInput.options = [
+            { label: '-', value: '' },
+            { label: 'Inbound Received', value: 'Inbound Received' },
+            { label: 'Inbound Department', value: 'Inbound Department' },
+            { label: 'Inbound Associate', value: 'Inbound Associate' },
+            { label: 'Inbound Service', value: 'Inbound Service' },
+            { label: 'Hold Over Location', value: 'Hold Over Location' },
+            { label: 'Late Received', value: 'Late Received' },
+            { label: 'Delivery Attempt', value: 'Delivery Attempt' },
+            { label: 'Delivered', value: 'Delivered' },
+            { label: 'Outbound Received', value: 'Outbound Received' },
+            { label: 'Outbound Carrier', value: 'Outbound Carrier' },
+            { label: 'Inventory', value: 'Marked Inventoried' },
+            { label: 'Decisioning', value: 'Decisioning' },
+            { label: 'Returned Inbound', value: 'Returned Inbound' },
+        ];
+    }
 
-    addedByUserInput.options = [
-        { label: 'Not available', value: '' },
-    ];
+    if (addedByUserInput && addedByUserInput.options !== undefined) {
+        addedByUserInput.options = [
+            { label: 'Not available', value: '' },
+        ];
+    }
 
     // Set up reference number input handler to load existing data when reference number is entered
     // Use direct onChange to ensure it always works
@@ -475,11 +493,30 @@ export async function setupCreateOrEditReference(
 
     //SET UP SUBMIT BUTTON FUNCTIONALITY
     submitButton.onClick( async () => {
-        // Ensure reference number is set in the dataset before saving
+        // Ensure all required fields are set in the dataset before saving
         const refNumber = referenceNumberInput?.value?.toString().trim() || '';
+        const typeValue = referenceTypeInput?.value || '';
+        const statusValue = statusInput?.value || '';
+        const currentDate = new Date();
+        
         if (refNumber) {
             await createDataset.setFieldValue('referenceNumber', refNumber);
         }
+        
+        if (typeValue) {
+            await createDataset.setFieldValue('referenceType', typeValue);
+        }
+        
+        if (statusValue) {
+            await createDataset.setFieldValue('status', statusValue);
+        }
+        
+        // Set userID to ABC123
+        await createDataset.setFieldValue('addedByUser', 'ABC123');
+        
+        // Set update date to current timestamp
+        await createDataset.setFieldValue('updateDate', currentDate);
+        
         await createDataset.save();
         // Optionally, you can add code here to navigate away or show a success message 
     });
