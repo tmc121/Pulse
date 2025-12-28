@@ -300,7 +300,7 @@ export async function getInboundReceivedOnlyCount() {
         const results = await wixData.query('DemoData')
             .ne('referenceNumber', '')
             .isNotEmpty('referenceNumber')
-            .find();
+            .find({ suppressAuth: true, suppressHooks: true });
 
         const referenceMap = new Map();
         results.items.forEach((item) => {

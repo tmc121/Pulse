@@ -5,6 +5,7 @@
 // THIS WILL HELP WITH FUNCTIONS INSIDE THE MASTER PAGE AND OTHER PAGES TO CALL THESE FUNCTIONS FROM HERE RATHER THAN REWRITING THE SAME FUNCTION IN MULTIPLE PAGES
 
 //IMPORTS
+import { afterInsert } from 'DataHooks';
 import wixData from 'wix-data';
 import { authentication, currentMember } from 'wix-members';
 
@@ -17,7 +18,7 @@ export async function getUserAccountByMemberId(id){
     try {
         const userAccount = await wixData.query("UserAccounts")
             .eq("connectedMemberId", id)
-            .find()
+            .find({ suppressAuth: true, suppressHooks: true })
             .then((results) => {
                 if (results.items.length > 0) {
                     return results.items[0];
@@ -35,20 +36,21 @@ export async function getUserAccountByMemberId(id){
 
 // THIS FUNCTION WILL QUERY & CHECK FOR A USER ACCOUNT
 // BASED ON A LOGGED-IN MEMBER'S EMAIL;
+// NOT YET USED - FOR FUTURE PURPOSES
 export async function getUserAccountByEmail(email){
 
     try {
-        console.log("Searching for UserAccount with connectedMemberId:", id);
+        console.log("Searching for UserAccount with connectedMemberId:", email);
         const userAccount = await wixData.query("UserAccounts")
-            .eq("connectedMemberId", id)
-            .find()
+            .eq("loginEmail", email)
+            .find({ suppressAuth: true, suppressHooks: true })
             .then((results) => {
                 console.log("UserAccount query results:", results.items.length, "accounts found");
                 if (results.items.length > 0) {
                     console.log("Found UserAccount:", results.items[0].firstName, results.items[0].lastName);
                     return results.items[0]; // Return the first matching user account
                 } else {
-                    console.log("No UserAccount found for connectedMemberId:", id);
+                    console.log("No UserAccount found for connectedMemberId:", email);
                     return null; // No matching user account found
                 }
             });
@@ -66,7 +68,7 @@ export async function checkUserAccountExistsByUserId(id){
     try {
         const userAccountExists = await wixData.query("UserAccounts")
             .eq("userId", id)
-            .find()
+            .find({ suppressAuth: true, suppressHooks: true })
             .then((results) => {
                 return results.items.length > 0; // Return true if at least one matching user account is found
             });
@@ -100,7 +102,7 @@ export async function checkIfUserIsAdminByUserId(userId){
         const userAccount = await wixData.query("UserAccounts")
             .eq("userId", userId)
             .eq("adminAccount", true)
-            .find()
+            .find({ suppressAuth: true, suppressHooks: true })
             .then((results) => {
                 if (results.items.length > 0) {
                     return true ; // Return the first matching user account
