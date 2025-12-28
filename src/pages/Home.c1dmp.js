@@ -297,7 +297,9 @@ const accountData = [
 ];  
 
 // SET UP DASHBOARD ACCOUNT SECTION
+
 async function setupDashboardAccountSection() {
+    accountSection_Repeater.data = accountData;
     accountSection_Repeater.onItemReady( ($item, itemData, index) => {
         $item(accountSection_Repeater_Item_Button).label = itemData.buttonLabel;
         $item(accountSection_Repeater_Item_Button).onClick( async () => {
@@ -323,6 +325,7 @@ const settingsData = [
 ];  
 // SET UP DASHBOARD SETTINGS SECTION
 async function setupDashboardSettingsSection() {
+    settingsSection_Repeater.data = settingsData;
     settingsSection_Repeater.onItemReady( ($item, itemData, index) => {
         $item(settingsSection_Repeater_Item_Button).label = itemData.buttonLabel;
         $item(settingsSection_Repeater_Item_Button).onClick( async () => {
