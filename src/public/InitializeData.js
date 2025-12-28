@@ -48,7 +48,7 @@ async function applyFilter(dataset, filter) {
     }
     if (typeof dataset.setSort === 'function') {
         await dataset.setSort(
-            wixData.sort().descending('_createdDate').descending('updateDate')
+            wixData.sort().descending('updateDate').descending('_updatedDate').descending('_createdDate')
         );
     }
 }
@@ -163,7 +163,7 @@ export async function initializeSearchSelected(
                 byUserValue: filterByUserDropdown?.value,
             })
         );
-        updateReferenceDisplay(selectedReferenceDisplay.text = referenceNumber.toString());
+        updateReferenceDisplay(selectedReferenceDisplay, referenceNumber);
     };
 
     bindOnChangeOnce(filterTypeDropdown, applySelectedFilters);
@@ -177,12 +177,8 @@ export async function initializeSearchSelected(
         const ref = normalizeValue(
             row.referenceNumber || row.referenceNumberDisplay || row.reference
         );
-        updateReferenceDisplay(selectedReferenceDisplay.text = ref.toString());
+        updateReferenceDisplay(selectedReferenceDisplay, ref);
     });
-
-    filterTypeDropdown.disable();
-    filterStatusDropdown.disable();
-    filterByUserDropdown.disable();
     await applySelectedFilters();
 }
 

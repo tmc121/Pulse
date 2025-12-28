@@ -69,6 +69,85 @@ async function fetchLatestByReference({ searchValue, typeValue, statusValue, byU
     return valid;
 }
 
+async function fetchNotDeliveredAfterReceived({ searchValue, typeValue, statusValue, byUserValue }) {
+    const opts = { suppressAuth: true, suppressHooks: true };
+    let query = wixData
+        .query('DemoData')
+        .ne('referenceNumber', '')
+        .isNotEmpty('referenceNumber')
+        .ascending('updateDate')
+        .ascending('_updatedDate')
+        .ascending('_createdDate');
+
+    if (searchValue) {
+        query = query.contains('referenceNumber', searchValue);
+    }
+    if (typeValue) {
+        query = query.eq('referenceType', typeValue);
+    }
+    if (statusValue) {
+        query = query.eq('status', statusValue);
+    }
+    if (byUserValue) {
+        query = query.eq('addedByUser', byUserValue);
+    }
+
+    let results = await query.limit(REPORT_PAGE_SIZE).find(opts);
+
+    const referenceSequences = new Map();
+    const processItems = (items) => {
+        items.forEach((item) => {
+            const ref = item.referenceNumber ? item.referenceNumber.trim() : '';
+            if (!ref) {
+                return;
+            }
+            if (!referenceSequences.has(ref)) {
+                referenceSequences.set(ref, []);
+            }
+            referenceSequences.get(ref).push(item);
+        });
+    };
+
+    processItems(results.items);
+    while (results.hasNext()) {
+        results = await results.next();
+        processItems(results.items);
+    }
+
+    const notDeliveredItems = [];
+    
+    for (const [ref, items] of referenceSequences.entries()) {
+        let hasInboundReceived = false;
+        let hasDeliveredAfterReceived = false;
+        let latestItem = null;
+        
+        // Sort by updateDate to ensure proper sequence
+        items.sort((a, b) => {
+            const aDate = new Date(a.updateDate || a._updatedDate || a._createdDate);
+            const bDate = new Date(b.updateDate || b._updatedDate || b._createdDate);
+            return aDate - bDate;
+        });
+        
+        for (const item of items) {
+            latestItem = item; // Keep track of the latest item
+            
+            if (item.status === 'Inbound Received') {
+                hasInboundReceived = true;
+                hasDeliveredAfterReceived = false; // Reset delivered flag when we see a new inbound
+            } else if (item.status === 'Delivered' && hasInboundReceived) {
+                hasDeliveredAfterReceived = true;
+            }
+        }
+        
+        // Include if we have 'Inbound Received' but no 'Delivered' after it
+        if (hasInboundReceived && !hasDeliveredAfterReceived && latestItem) {
+            notDeliveredItems.push(latestItem);
+        }
+    }
+
+    return notDeliveredItems;
+}
+
 async function applyIdsToDataset(dataset, ids) {
     if (!dataset || typeof dataset.setFilter !== 'function') {
         return;
@@ -96,6 +175,8 @@ async function sortDatasetByNewest(dataset) {
         await dataset.setSort(wixData.sort().descending('updateDate').descending('_updatedDate').descending('_createdDate'));
     }
 }
+
+
 
 export async function reportsInNotReceived(reportsDataset,
     reportsTable,
@@ -151,9 +232,8 @@ export async function reportsNotDelivered(reportsDataset,
 
     const searchValue = (reportsFilterSearch_Input?.value || '').trim();
 
-    const items = await fetchLatestByReference({
+    const items = await fetchNotDeliveredAfterReceived({
         searchValue,
-        statusExclusion: 'Delivered',
     });
 
     const ids = items.map((item) => item._id).filter(Boolean);
