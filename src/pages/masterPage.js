@@ -40,18 +40,18 @@ async function setupQuickMenu() {
 
     main_QuickMenu_Button_Account.label = 'Account';
     main_QuickMenu_Button_Account.onClick( async () => {
-        await primaryNavigate(primaryMultiState, 'myAccountMain1');
+        
         
     });
 
     main_QuickMenu_Button_Team.label = 'My Team';
     main_QuickMenu_Button_Team.onClick( async () => {
-        await primaryNavigate(primaryMultiState, 'teamMain1');
+        
     });
 
     main_QuickMenu_Button_Manage.label = 'Manage Team';
     main_QuickMenu_Button_Manage.onClick( async () => {
-        await primaryNavigate(primaryMultiState, 'manageTeamMain1');
+       
 
     main_QuickMenu_Button_Logout.label = 'Logout';
     main_QuickMenu_Button_Logout.onClick( async () => {
