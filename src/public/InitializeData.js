@@ -95,6 +95,30 @@ function updateReferenceDisplay(referenceDisplay, referenceNumber) {
     referenceDisplay.text = refText ? `Reference: ${refText}` : 'Reference: N/A';
 }
 
+async function getUserOptionByUserId(userId) {
+    const cleanId = normalizeValue(userId);
+    if (!cleanId) {
+        return null;
+    }
+
+    try {
+        const result = await wixData
+            .query('UserAccounts')
+            .eq('userId', cleanId)
+            .find({ suppressAuth: true, suppressHooks: true });
+
+        if (result.items && result.items.length > 0) {
+            const acct = result.items[0];
+            const label = `${normalizeValue(acct.firstName)} ${normalizeValue(acct.lastName)}`.trim() || cleanId;
+            return { label, value: cleanId };
+        }
+    } catch (error) {
+        console.error('Error fetching user account for addedByUser:', error);
+    }
+
+    return { label: cleanId, value: cleanId };
+}
+
 export async function initializeSearch(
     searchDataset,
     searchResultsTable,
@@ -333,38 +357,47 @@ export async function setupCreateOrEditReference(
         referenceNumberInput.onChange(async () => {
             try {
                 const refNumber = referenceNumberInput?.value?.toString().trim() || '';
-                
+
                 if (refNumber) {
                     // EDIT EXISTING REFERENCE - check if reference exists
                     await createDataset.setFilter(
                         wixData.filter().eq('referenceNumber', refNumber)
                     );
                     await createDataset.refresh();
-                    
+
                     if (createDataset.getTotalCount() > 0) {
                         // Reference exists - populate fields for editing
                         await createDataset.setCurrentItemIndex(0);
                         const currentItem = createDataset.getCurrentItem();
-                        
+
                         if (currentItem) {
                             // Populate the form fields with existing data
-                            if (referenceTypeInput && currentItem.referenceType) {
-                                referenceTypeInput.value = currentItem.referenceType;
-                                
-                                // Disable type input if first entry was "Inbound Received"
-                                // Check if this reference has any "Inbound Received" entries
-                                const hasInboundReceived = currentItem.status === 'Inbound Received' || 
-                                                         currentItem.referenceType !== '';
-                                if (hasInboundReceived && referenceTypeInput.disable) {
+                            if (referenceTypeInput) {
+                                referenceTypeInput.value = currentItem.referenceType || '';
+                                if (referenceTypeInput.disable) {
                                     referenceTypeInput.disable();
                                 }
                             }
-                            
-                            if (statusInput && currentItem.status) {
-                                statusInput.value = currentItem.status;
+
+                            if (statusInput) {
+                                statusInput.value = currentItem.status || '';
+                                if (statusInput.enable) {
+                                    statusInput.enable();
+                                }
                             }
-                            if (addedByUserInput && currentItem.addedByUser) {
-                                addedByUserInput.value = currentItem.addedByUser;
+
+                            if (addedByUserInput) {
+                                const userOption = await getUserOptionByUserId(currentItem.addedByUser);
+                                if (userOption) {
+                                    addedByUserInput.options = [userOption];
+                                    addedByUserInput.value = userOption.value;
+                                } else {
+                                    addedByUserInput.options = [{ label: 'Not available', value: '' }];
+                                    addedByUserInput.value = '';
+                                }
+                                if (addedByUserInput.enable) {
+                                    addedByUserInput.enable();
+                                }
                             }
                         }
                     } else {
@@ -372,31 +405,53 @@ export async function setupCreateOrEditReference(
                         await createDataset.clear();
                         await createDataset.new();
                         await createDataset.setFieldValue('referenceNumber', refNumber);
-                        
-                        // Clear form fields and enable type input for new entry
+
+                        // Clear form fields and enable type/status/user inputs for new entry
                         if (referenceTypeInput) {
                             referenceTypeInput.value = '';
                             if (referenceTypeInput.enable) {
                                 referenceTypeInput.enable();
                             }
                         }
-                        if (statusInput) statusInput.value = '';
-                        if (addedByUserInput) addedByUserInput.value = '';
+                        if (statusInput) {
+                            statusInput.value = '';
+                            if (statusInput.enable) {
+                                statusInput.enable();
+                            }
+                        }
+                        if (addedByUserInput) {
+                            addedByUserInput.options = [{ label: 'Not available', value: '' }];
+                            addedByUserInput.value = '';
+                            if (addedByUserInput.enable) {
+                                addedByUserInput.enable();
+                            }
+                        }
                     }
                 } else {
                     // No reference number - set up for new entry
                     await createDataset.clear();
                     await createDataset.new();
-                    
-                    // Clear form fields and enable type input
+
+                    // Clear form fields and enable type/status/user inputs
                     if (referenceTypeInput) {
                         referenceTypeInput.value = '';
                         if (referenceTypeInput.enable) {
                             referenceTypeInput.enable();
                         }
                     }
-                    if (statusInput) statusInput.value = '';
-                    if (addedByUserInput) addedByUserInput.value = '';
+                    if (statusInput) {
+                        statusInput.value = '';
+                        if (statusInput.enable) {
+                            statusInput.enable();
+                        }
+                    }
+                    if (addedByUserInput) {
+                        addedByUserInput.options = [{ label: 'Not available', value: '' }];
+                        addedByUserInput.value = '';
+                        if (addedByUserInput.enable) {
+                            addedByUserInput.enable();
+                        }
+                    }
                 }
             } catch (error) {
                 console.error('Error in reference number onChange:', error);
@@ -418,21 +473,30 @@ export async function setupCreateOrEditReference(
                 const currentItem = createDataset.getCurrentItem();
                 
                 if (currentItem) {
-                    if (referenceTypeInput && currentItem.referenceType) {
-                        referenceTypeInput.value = currentItem.referenceType;
-                        
-                        // Disable type input if reference already exists with data
-                        const hasInboundReceived = currentItem.status === 'Inbound Received' || 
-                                                 currentItem.referenceType !== '';
-                        if (hasInboundReceived && referenceTypeInput.disable) {
+                    if (referenceTypeInput) {
+                        referenceTypeInput.value = currentItem.referenceType || '';
+                        if (referenceTypeInput.disable) {
                             referenceTypeInput.disable();
                         }
                     }
-                    if (statusInput && currentItem.status) {
-                        statusInput.value = currentItem.status;
+                    if (statusInput) {
+                        statusInput.value = currentItem.status || '';
+                        if (statusInput.enable) {
+                            statusInput.enable();
+                        }
                     }
-                    if (addedByUserInput && currentItem.addedByUser) {
-                        addedByUserInput.value = currentItem.addedByUser;
+                    if (addedByUserInput) {
+                        const userOption = await getUserOptionByUserId(currentItem.addedByUser);
+                        if (userOption) {
+                            addedByUserInput.options = [userOption];
+                            addedByUserInput.value = userOption.value;
+                        } else {
+                            addedByUserInput.options = [{ label: 'Not available', value: '' }];
+                            addedByUserInput.value = '';
+                        }
+                        if (addedByUserInput.enable) {
+                            addedByUserInput.enable();
+                        }
                     }
                 }
             } else {
@@ -440,9 +504,15 @@ export async function setupCreateOrEditReference(
                 await createDataset.new();
                 await createDataset.setFieldValue('referenceNumber', initialRefNumber);
                 
-                // Enable type input for new reference
+                // Enable type/status/user inputs for new reference
                 if (referenceTypeInput && referenceTypeInput.enable) {
                     referenceTypeInput.enable();
+                }
+                if (statusInput && statusInput.enable) {
+                    statusInput.enable();
+                }
+                if (addedByUserInput && addedByUserInput.enable) {
+                    addedByUserInput.enable();
                 }
             }
         } catch (error) {
