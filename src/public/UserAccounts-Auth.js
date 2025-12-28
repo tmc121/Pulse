@@ -5,7 +5,6 @@
 // THIS WILL HELP WITH FUNCTIONS INSIDE THE MASTER PAGE AND OTHER PAGES TO CALL THESE FUNCTIONS FROM HERE RATHER THAN REWRITING THE SAME FUNCTION IN MULTIPLE PAGES
 
 //IMPORTS
-import { afterInsert } from 'DataHooks';
 import wixData from 'wix-data';
 import { authentication, currentMember } from 'wix-members';
 
