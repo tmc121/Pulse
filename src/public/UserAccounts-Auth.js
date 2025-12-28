@@ -1,5 +1,5 @@
 // File: src/public/UserAccounts-Auth.js
-// import {   } from 'public/UserAccounts-Auth.js';
+// import { getUserAccountByMemberId } from 'public/UserAccounts-Auth.js';
 
 // THIS FILE WILL CONTAIN ALL FUNCTIONS RELATED TO USER ACCOUNTS AND AUTHENTICATION
 // THIS WILL HELP WITH FUNCTIONS INSIDE THE MASTER PAGE AND OTHER PAGES TO CALL THESE FUNCTIONS FROM HERE RATHER THAN REWRITING THE SAME FUNCTION IN MULTIPLE PAGES
@@ -9,23 +9,6 @@ import wixData from 'wix-data';
 import { authentication, currentMember } from 'wix-members';
 
 
-// THIS FUNCTION WILL CHECK IF A MEMBER IS LOGGED IN AND RETURN THE MEMBER DETAILS
-export async function getLoggedInMemberId(){
-    
-    try {
-        const member = await currentMember.getMember();
-        if (member) {
-            return member._id; // Return the member ID if logged in
-        } else {
-            return null; // No member is logged in   
-        }
-    } catch (error) {
-        console.error("Error fetching logged-in member:", error);
-        throw error; // Rethrow the error for further handling if needed
-    }
-}
-   
-
 // THIS FUNCTION WILL QUERY & CHECK FOR A USER ACCOUNT
 // BASED ON A LOGGED-IN MEMBER'S _ID;
 
@@ -33,7 +16,7 @@ export async function getUserAccountByMemberId(id){
 
     try {
         const userAccount = await wixData.query("UserAccounts")
-            .eq("connectedMemberId", id)
+            .eq("memberId", id)
             .find()
             .then((results) => {
                 if (results.items.length > 0) {
@@ -127,4 +110,60 @@ export async function checkIfUserIsAdminByUserId(userId){
         console.error("(Check If Admin By UserID) - Error checking if user is admin:", error);
         throw error; // Rethrow the error for further handling if needed
     }   
+}
+
+// THIS FUNCTION WILL VALIDATE IF A USER ACCOUNT IS VALID AND ACTIVE
+// BASED ON A PROVIDED MEMBER ID;
+export async function validateUserAccountAccess(memberId){
+    try {
+        const userAccount = await getUserAccountByMemberId(memberId);
+        
+        if (!userAccount) {
+            return {
+                isValid: false,
+                reason: 'NO_ACCOUNT',
+                message: 'No user account found. Please contact your administrator.',
+                account: null
+            };
+        }
+        
+        if (userAccount.status !== 'Active') {
+            return {
+                isValid: false,
+                reason: 'INACTIVE_ACCOUNT',
+                message: 'Your account is not active. Please contact your administrator.',
+                account: userAccount
+            };
+        }
+        
+        // Check if user has team admin assigned or is an admin themselves
+        const hasTeamAdmin = userAccount.teamAdmin && userAccount.teamAdmin.length > 0;
+        const isAdminAccount = userAccount.adminAccount === true;
+        
+        if (!hasTeamAdmin && !isAdminAccount) {
+            return {
+                isValid: false,
+                reason: 'NO_TEAM_ASSIGNED',
+                message: 'You need to be assigned to a team to access InComm.',
+                account: userAccount,
+                requiresTeamAssignment: true
+            };
+        }
+        
+        return {
+            isValid: true,
+            reason: 'VALID',
+            message: 'Access granted.',
+            account: userAccount
+        };
+        
+    } catch (error) {
+        console.error("Error validating user account access:", error);
+        return {
+            isValid: false,
+            reason: 'ERROR',
+            message: 'An error occurred while validating your account. Please try again.',
+            account: null
+        };
+    }
 }

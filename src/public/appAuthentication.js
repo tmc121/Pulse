@@ -1,0 +1,177 @@
+// File:  src/public/appAuthentication.js
+// import { logoutCurrentUser, handleOnLogin, handleOnLogout, getLoggedInMemberId } from 'public/appAuthentication.js';
+
+// IMPORTS
+import wixLocationFrontend from 'wix-location-frontend';
+import wixWindowFrontend from 'wix-window-frontend';
+import { authentication, currentMember } from 'wix-members';
+import { getUserAccountByMemberId, validateUserAccountAccess } from 'public/UserAccounts-Auth.js';
+
+// THIS FILE WILL CONTAIN ALL FUNCTIONS RELATED TO APP AUTHENTICATION
+// THIS WILL HELP WITH FUNCTIONS INSIDE THE MASTER PAGE AND OTHER PAGES TO CALL THESE FUNCTIONS FROM HERE RATHER THAN REWRITING THE SAME FUNCTION IN MULTIPLE PAGES
+
+
+// THIS FUNCTION WILL CHECK IF A MEMBER IS LOGGED IN AND RETURN THE MEMBER DETAILS
+export async function getLoggedInMemberId(){
+    
+    try {
+        const member = await currentMember.getMember();
+        if (member) {
+            return member._id; // Return the member ID if logged in
+        } else {
+            return null; // No member is logged in  
+        }
+    } catch (error) {
+        console.error("Error fetching logged-in member:", error);
+        throw error; // Rethrow the error for further handling if needed
+    }
+}
+
+
+// THIS FUNCTION WILL LOGOUT THE CURRENT LOGGED-IN USER
+export async function logoutCurrentUser(headerLoginOutButton, headerQuickMenu) {
+    try {
+        await authentication.logout();
+        console.log("User logged out successfully.");
+        try {
+        // Add any actions you want to perform on logout here
+        console.log("User logged out successfully.");
+        headerLoginOutButton.label = "SignUp/Login"; // Reset label to default
+        headerLoginOutButton.onClick( async () => {
+            try {
+                // Prompt Login
+                let options = {"mode": "login", "modal": true};
+                await authentication.promptLogin(options);
+                headerQuickMenu.collapse();
+            } catch (error) {
+                console.error("Error collapsing header quick menu on logout:", error);
+            }
+        });
+    } catch (error) {
+        console.error("Error during logout actions:", error);
+        throw error; // Rethrow the error for further handling if needed
+    }
+
+    } catch (error) {
+        console.error("Error logging out user:", error);
+        throw error; // Rethrow the error for further handling if needed
+    }
+}
+
+// THIS FUNCTION WILL HANDLE ON LOGIN ACTIONS
+export async function handleOnLogin(headerLoginOutButton, headerQuickMenu) {
+    try {
+        // Add any actions you want to perform on login here
+        console.log("User logged in successfully.");
+        
+        const memberId = await getLoggedInMemberId();
+        const validation = await validateUserAccountAccess(memberId);
+        
+        if (!validation.isValid) {
+            // User doesn't have valid access - log them out
+            console.log("User access validation failed:", validation.reason, validation.message);
+            
+            // If user needs team assignment, redirect to Get Team page
+            if (validation.requiresTeamAssignment) {
+                console.log("Redirecting user to Get Team page for team assignment");
+                // Don't logout immediately, let them assign to a team first
+                headerLoginOutButton.label = "Setup Required";
+                headerLoginOutButton.onClick( async () => {
+                    try {
+                        // Import wix-location-frontend dynamically
+                        wixWindowFrontend.openLightbox('Get Team'); // THIS IS THE POPUP LIGHTBOX FOR TEAM ASSIGNMENT
+                    } catch (error) {
+                        console.error("Error redirecting to Get Team page:", error);
+                    }
+                });
+                return;
+            }
+            
+            // For other validation failures, logout the user
+            await logoutCurrentUser(headerLoginOutButton, headerQuickMenu);
+            
+            // Show error message (you might want to show this in a popup or notification)
+            console.error("Access denied:", validation.message);
+            return;
+        }
+        
+        // User has valid access - proceed with normal login
+        const userAccount = validation.account;
+        headerLoginOutButton.label = userAccount.firstName + " " + userAccount.lastName || "Account";
+        headerLoginOutButton.onClick( async () => {
+            try {
+                headerQuickMenu.expand();
+            } catch (error) {
+                console.error("Error expanding header quick menu on login:", error);
+            }
+        });
+        
+        console.log("User access validated successfully for:", userAccount.firstName, userAccount.lastName);
+        
+    } catch (error) {
+        console.error("Error during login actions:", error);
+        // On error, logout the user for security
+        await logoutCurrentUser(headerLoginOutButton, headerQuickMenu);
+        throw error; // Rethrow the error for further handling if needed
+    }
+}
+
+// THIS FUNCTION WILL HANDLE ON LOGOUT ACTIONS
+export async function handleOnLogout(headerLoginOutButton, headerQuickMenu) {
+    try {
+        // Add any actions you want to perform on logout here
+        console.log("User logged out successfully.");
+        headerLoginOutButton.label = "SignUp/Login"; // Reset label to default
+        headerLoginOutButton.onClick( async () => {
+            try {
+                // Prompt Login
+                let options = {"mode": "login", "modal": true};
+                await authentication.promptLogin(options);
+                headerQuickMenu.collapse();
+            } catch (error) {
+                console.error("Error collapsing header quick menu on logout:", error);
+            }
+        });
+    } catch (error) {
+        console.error("Error during logout actions:", error);
+        throw error; // Rethrow the error for further handling if needed
+    }
+}
+
+// THIS FUNCTION WILL VALIDATE FRESH LOGIN AND HANDLE TEAM ASSIGNMENT REQUIREMENTS
+export async function validateFreshLogin() {
+    try {
+        const memberId = await getLoggedInMemberId();
+        if (!memberId) {
+            return { isValid: false, action: 'LOGIN_REQUIRED' };
+        }
+        
+        const validation = await validateUserAccountAccess(memberId);
+        
+        if (!validation.isValid) {
+            if (validation.requiresTeamAssignment) {
+                // Open Get Team lightbox popup
+                wixWindowFrontend.openLightbox('Get Team');
+                return { isValid: false, action: 'TEAM_ASSIGNMENT_OPENED', reason: validation.reason };
+            }
+            // For other validation failures, logout and prompt login
+            await authentication.logout();
+            let options = {"mode": "login", "modal": true};
+            await authentication.promptLogin(options);
+            return { isValid: false, action: 'LOGIN_PROMPTED', reason: validation.reason };
+        }
+        
+        return { isValid: true, account: validation.account };
+        
+    } catch (error) {
+        console.error("Error validating fresh login:", error);
+        // On error, prompt login
+        try {
+            let options = {"mode": "login", "modal": true};
+            await authentication.promptLogin(options);
+        } catch (loginError) {
+            console.error("Error prompting login:", loginError);
+        }
+        return { isValid: false, action: 'LOGIN_PROMPTED', reason: 'ERROR' };
+    }
+}      

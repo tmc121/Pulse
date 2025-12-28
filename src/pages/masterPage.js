@@ -4,6 +4,9 @@ import wixLocationFrontend from "wix-location-frontend";
 import wixWindowFrontend from "wix-window-frontend";
 import { primaryNavigate, reportsNavigate } from 'public/appNavigation.js';
 
+import { logoutCurrentUser, handleOnLogin, handleOnLogout, getLoggedInMemberId, validateFreshLogin } from 'public/appAuthentication.js';
+import { logout } from "wix-users";
+
 // Get reference to the primary multistate box from Home page
 // const primaryMultiState = $w('#multiStateBox1');
 
@@ -23,7 +26,51 @@ const main_QuickMenu_Button_Logout = $w('#header-QuickMenu-Button-Logout');
 $w.onReady( async function () {
     // SET UP QUICKMENU FUNCTIONALITY
     await setupQuickMenu();
+    
+    // CHECK IF A MEMBER IS LOGGED IN
+    const memberId =  await getLoggedInMemberId();
+    if (memberId) {
+        // MEMBER IS LOGGED IN - VALIDATE ACCESS
+        console.log("Member is logged in with ID:", memberId);
+        
+        // Perform validation every time the page loads
+        const validation = await validateFreshLogin();
+        
+        if (!validation.isValid) {
+            console.log("Member validation failed:", validation.action, validation.reason);
+            // The validateFreshLogin function already handles the appropriate popup/action
+            return;
+        }
+        
+        await handleOnLogin(main_loginUserName_Button, main_Header_Menu_Wrapper);
+        
+        // Set up periodic validation check (every 30 seconds)
+        setInterval(async () => {
+            try {
+                const currentMemberId = await getLoggedInMemberId();
+                if (currentMemberId) {
+                    const periodicValidation = await validateFreshLogin();
+                    if (!periodicValidation.isValid) {
+                        console.log("Periodic validation failed:", periodicValidation.action, periodicValidation.reason);
+                        // If it's a team assignment issue, don't logout - let them use the Get Team lightbox
+                        if (periodicValidation.action !== 'TEAM_ASSIGNMENT_OPENED') {
+                            await logoutCurrentUser(main_loginUserName_Button, main_Header_Menu_Wrapper);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error("Error in periodic validation:", error);
+            }
+        }, 30000); // Check every 30 seconds
+        
+    } else {
+        // NO MEMBER IS LOGGED IN
+        console.log("No member is logged in.");
+        await handleOnLogout(main_loginUserName_Button, main_Header_Menu_Wrapper);
+    }
 });
+
+
 // SET UP QUICKMENU FUNCTIONALITY
 async function setupQuickMenu() {
     main_loginUserName_Button.label = "SignUp/Login";
@@ -42,6 +89,7 @@ async function setupQuickMenu() {
     main_QuickMenu_Button_Account.onClick( async () => {
         try {
         wixLocationFrontend.to('/home?state=myAccountMain1');
+        wixLocationFrontend.to(wixLocationFrontend.url);
         } catch (error) {
             console.error('Error navigating to My Account page:', error);
         }
@@ -51,6 +99,7 @@ async function setupQuickMenu() {
     main_QuickMenu_Button_Team.onClick( async () => {
         try {
         wixLocationFrontend.to('/home?state=teamMain1');
+        wixLocationFrontend.to(wixLocationFrontend.url);
         } catch (error) {
             console.error('Error navigating to My Team page:', error);
         }
@@ -60,6 +109,7 @@ async function setupQuickMenu() {
     main_QuickMenu_Button_Manage.onClick( async () => {
         try {
         wixLocationFrontend.to('/home?state=manageTeamMain1');
+        wixLocationFrontend.to(wixLocationFrontend.url);
         } catch (error) {
             console.error('Error navigating to Manage Team page:', error);
         }
@@ -67,8 +117,7 @@ async function setupQuickMenu() {
 
     main_QuickMenu_Button_Logout.label = 'Logout';
     main_QuickMenu_Button_Logout.onClick( async () => {
-        await authentication.logout();
-        
+        await logoutCurrentUser(main_loginUserName_Button, main_Header_Menu_Wrapper);
     });
 }
 
