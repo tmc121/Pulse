@@ -267,7 +267,7 @@ const manageData = [
     {
         buttonLabel: 'Decisioning Matrix',
         linkURL: '/home?state=manageProjectsMain1'
-    }
+    },
     {
         buttonLabel: 'Day Reconcil',
         linkURL: '/home?state=manageIntegrationsMain1'
