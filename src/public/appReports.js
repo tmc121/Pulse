@@ -296,6 +296,7 @@ export async function reportsAllInbound(reportsDataset,
 // ON GET COUNT OF RECORDS FOR 'INBOUND RECEIVED' STATUS THAT ONLY HAS AN INBOUND RECEIVED STATUS RECORD WITHOUT A CORRESPONDING 'DELIVERED' STATUS RECORD
 // IF MULTIPLE RECORDS EXIST WITH THE SAME REFERENCE NUMBER, ONLY THE MOST RECENT RECORD BASED ON updateDate FIELD WILL BE CONSIDERED FOR THE REPORT COUNT
 export async function getInboundReceivedOnlyCount() {
+    try {
 wixdata.query('DemoData')
     .ne('referenceNumber', '')
     .isNotEmpty('referenceNumber')
@@ -341,8 +342,9 @@ wixdata.query('DemoData')
 
         return count;
     })
-    .catch( (err) => {
-        console.error('Error fetching data for inbound received only count:', err);
+}
+    .catch((error) => {
+        console.error('Error fetching data for inbound received only count:', error);
         return 0;
     });
 }   
