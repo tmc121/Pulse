@@ -33,25 +33,10 @@ export async function logoutCurrentUser(headerLoginOutButton, headerQuickMenu) {
     try {
         await authentication.logout();
         console.log("User logged out successfully.");
-        try {
-        // Add any actions you want to perform on logout here
-        console.log("User logged out successfully.");
-        headerLoginOutButton.label = "SignUp/Login"; // Reset label to default
-        headerLoginOutButton.onClick( async () => {
-            try {
-                // Prompt Login
-                let options = {"mode": "login", "modal": true};
-                await authentication.promptLogin(options);
-                headerQuickMenu.collapse();
-            } catch (error) {
-                console.error("Error collapsing header quick menu on logout:", error);
-            }
-        });
-    } catch (error) {
-        console.error("Error during logout actions:", error);
-        throw error; // Rethrow the error for further handling if needed
-    }
-
+        
+        // After logout, set up the logged-out state
+        await handleOnLogout(headerLoginOutButton, headerQuickMenu);
+        
     } catch (error) {
         console.error("Error logging out user:", error);
         throw error; // Rethrow the error for further handling if needed
@@ -73,15 +58,14 @@ export async function handleOnLogin(headerLoginOutButton, headerQuickMenu) {
             
             // If user needs team assignment, redirect to Get Team page
             if (validation.requiresTeamAssignment) {
-                console.log("Redirecting user to Get Team page for team assignment");
+                console.log("User needs team assignment");
                 // Don't logout immediately, let them assign to a team first
                 headerLoginOutButton.label = "Setup Required";
                 headerLoginOutButton.onClick( async () => {
                     try {
-                        // Import wix-location-frontend dynamically
                         wixWindowFrontend.openLightbox('Get Team'); // THIS IS THE POPUP LIGHTBOX FOR TEAM ASSIGNMENT
                     } catch (error) {
-                        console.error("Error redirecting to Get Team page:", error);
+                        console.error("Error opening Get Team lightbox:", error);
                     }
                 });
                 return;
@@ -163,24 +147,14 @@ export async function validateFreshLogin() {
                 wixWindowFrontend.openLightbox('Get Team');
                 return { isValid: false, action: 'TEAM_ASSIGNMENT_OPENED', reason: validation.reason };
             }
-            // For other validation failures, logout and prompt login
-            await authentication.logout();
-            let options = {"mode": "login", "modal": true};
-            await authentication.promptLogin(options);
-            return { isValid: false, action: 'LOGIN_PROMPTED', reason: validation.reason };
+            // For other validation failures, just return the failure without forcing logout here
+            return { isValid: false, action: 'LOGOUT_REQUIRED', reason: validation.reason, message: validation.message };
         }
         
         return { isValid: true, account: validation.account };
         
     } catch (error) {
         console.error("Error validating fresh login:", error);
-        // On error, prompt login
-        try {
-            let options = {"mode": "login", "modal": true};
-            await authentication.promptLogin(options);
-        } catch (loginError) {
-            console.error("Error prompting login:", loginError);
-        }
-        return { isValid: false, action: 'LOGIN_PROMPTED', reason: 'ERROR' };
+        return { isValid: false, action: 'ERROR', reason: 'ERROR' };
     }
 }      

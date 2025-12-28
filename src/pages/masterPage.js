@@ -38,13 +38,17 @@ $w.onReady( async function () {
         
         if (!validation.isValid) {
             console.log("Member validation failed:", validation.action, validation.reason);
-            // The validateFreshLogin function already handles the appropriate popup/action
+            
+            if (validation.action === 'LOGOUT_REQUIRED') {
+                await logoutCurrentUser(main_loginUserName_Button, main_Header_Menu_Wrapper);
+            }
+            // For other actions, validateFreshLogin already handled them
             return;
         }
         
         await handleOnLogin(main_loginUserName_Button, main_Header_Menu_Wrapper);
         
-        // Set up periodic validation check (every 30 seconds)
+        // Set up periodic validation check (every 5 minutes to be less aggressive)
         setInterval(async () => {
             try {
                 const currentMemberId = await getLoggedInMemberId();
@@ -52,16 +56,18 @@ $w.onReady( async function () {
                     const periodicValidation = await validateFreshLogin();
                     if (!periodicValidation.isValid) {
                         console.log("Periodic validation failed:", periodicValidation.action, periodicValidation.reason);
-                        // If it's a team assignment issue, don't logout - let them use the Get Team lightbox
-                        if (periodicValidation.action !== 'TEAM_ASSIGNMENT_OPENED') {
+                        // Handle different validation failure types
+                        if (periodicValidation.action === 'LOGOUT_REQUIRED') {
                             await logoutCurrentUser(main_loginUserName_Button, main_Header_Menu_Wrapper);
                         }
+                        // If it's a team assignment issue, don't logout - let them use the Get Team lightbox
+                        // The validateFreshLogin already opened the lightbox for TEAM_ASSIGNMENT_OPENED
                     }
                 }
             } catch (error) {
                 console.error("Error in periodic validation:", error);
             }
-        }, 30000); // Check every 30 seconds
+        }, 300000); // Check every 5 minutes instead of 30 seconds
         
     } else {
         // NO MEMBER IS LOGGED IN
