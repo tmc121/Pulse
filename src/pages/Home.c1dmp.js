@@ -5,7 +5,7 @@ import wixWindowFrontend from 'wix-window-frontend';
 
 //IMPORTS
 import { primaryNavigate, reportsNavigate } from 'public/appNavigation.js';
-import { initializeSearch, initializeSearchSelected, setupCreateOrEditReference, getInboundReceivedOnlyCount } from 'public/InitializeData.js';
+import { initializeSearch, initializeSearchSelected, setupCreateOrEditReference } from 'public/InitializeData.js';
 import { reportsInNotReceived, reportsNotDelivered, reportsAllInbound ,getInboundReceivedOnlyCount} from 'public/appReports.js';
 
 // MULTISTATE BOXES
