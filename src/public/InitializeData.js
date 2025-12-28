@@ -328,7 +328,7 @@ export async function setupCreateOrEditReference(
     ];
 
     //SET UP TYPE FILTER DROPDOWN
-    
+
     referenceTypeInput.onChange( async () => {
         const typeValue = referenceTypeInput.value;
         if (typeValue) {
@@ -360,4 +360,5 @@ export async function setupCreateOrEditReference(
         // Optionally, you can add code here to navigate away or show a success message 
     });
 }
+
 // END OF FILE src/public/InitializeData.js

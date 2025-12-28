@@ -5,7 +5,7 @@ import wixWindowFrontend from 'wix-window-frontend';
 
 //IMPORTS
 import { primaryNavigate, reportsNavigate } from 'public/appNavigation.js';
-import { initializeSearch, initializeSearchSelected, setupCreateOrEditReference } from 'public/InitializeData.js';
+import { initializeSearch, initializeSearchSelected, setupCreateOrEditReference, getInboundReceivedOnlyCount } from 'public/InitializeData.js';
 import { reportsInNotReceived, reportsNotDelivered, reportsAllInbound  } from 'public/appReports.js';
 
 // MULTISTATE BOXES
@@ -161,6 +161,7 @@ const mainMenu_ReportAll_Button = $w('#mainMenu-Button-ReportAll');
 
 const mainMenu_CreateReference_Button = $w('#mainMenu-Button-CreateReference');
 
+$w.onReady( async function () {
 // SET MAIN NAVIGATION MENU
 // SET BUTTONS TO NAVIGATE TO DIFFERENT PAGES
 
@@ -241,3 +242,7 @@ mainMenu_CreateReference_Button.onClick( async () => {
         createReference_SubmitButton);
 });
 
+totalInbound_Display.text = await getInboundReceivedOnlyCount();
+
+
+});

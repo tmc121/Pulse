@@ -289,3 +289,60 @@ export async function reportsAllInbound(reportsDataset,
 
     return ids.length;
 }
+
+// ANALYTICS FUNCTIONS
+
+// SET UP INBOUND REPORT COUNT
+// ON GET COUNT OF RECORDS FOR 'INBOUND RECEIVED' STATUS THAT ONLY HAS AN INBOUND RECEIVED STATUS RECORD WITHOUT A CORRESPONDING 'DELIVERED' STATUS RECORD
+// IF MULTIPLE RECORDS EXIST WITH THE SAME REFERENCE NUMBER, ONLY THE MOST RECENT RECORD BASED ON updateDate FIELD WILL BE CONSIDERED FOR THE REPORT COUNT
+export async function getInboundReceivedOnlyCount() {
+wixdata.query('DemoData')
+    .ne('referenceNumber', '')
+    .isNotEmpty('referenceNumber')
+    .find()
+    .then( (results) => {
+        const referenceMap = new Map();
+        results.items.forEach( (item) => {
+            const refNum = item.referenceNumber ? item.referenceNumber.trim() : '';
+            if (!refNum) {
+                return;
+            }
+            if (!referenceMap.has(refNum)) {
+                referenceMap.set(refNum, []);
+            }
+            referenceMap.get(refNum).push(item);
+        });
+
+        let count = 0;
+        referenceMap.forEach( (items, refNum) => {
+            let hasInboundReceived = false;
+            let hasDelivered = false;
+
+            // Sort items by updateDate to ensure correct sequence
+            items.sort( (a, b) => {
+                const aDate = new Date(a.updateDate || a._updatedDate || a._createdDate);
+                const bDate = new Date(b.updateDate || b._updatedDate || b._createdDate);
+                return aDate - bDate;
+            });
+
+            for (const item of items) {
+                if (item.status === 'Inbound Received') {
+                    hasInboundReceived = true;
+                    hasDelivered = false; // Reset delivered flag when we see a new inbound
+                } else if (item.status === 'Delivered' && hasInboundReceived) {
+                    hasDelivered = true;
+                }
+            }
+
+            if (hasInboundReceived && !hasDelivered) {
+                count++;
+            }
+        });
+
+        return count;
+    })
+    .catch( (err) => {
+        console.error('Error fetching data for inbound received only count:', err);
+        return 0;
+    });
+}   
