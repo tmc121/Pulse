@@ -23,9 +23,9 @@ async function fetchLatestByReference({ searchValue, typeValue, statusValue, byU
         .query('DemoData')
         .ne('referenceNumber', '')
         .isNotEmpty('referenceNumber')
-        .descending('_createdDate')
         .descending('updateDate')
-        .descending('_updatedDate');
+        .descending('_updatedDate')
+        .descending('_createdDate');
 
     if (searchValue) {
         query = query.contains('referenceNumber', searchValue);
@@ -93,7 +93,7 @@ async function applyIdsToDataset(dataset, ids) {
 
 async function sortDatasetByNewest(dataset) {
     if (dataset && typeof dataset.setSort === 'function') {
-        await dataset.setSort(wixData.sort().descending('_createdDate').descending('updateDate'));
+        await dataset.setSort(wixData.sort().descending('updateDate').descending('_updatedDate').descending('_createdDate'));
     }
 }
 
@@ -187,10 +187,9 @@ export async function reportsAllInbound(reportsDataset,
     await primaryNavigate(primaryMultiState, 'reportsMain1');
     await reportsNavigate(reportsMultiState, 'reportsData', reportsLoadingProgressBar);
 
-    const searchValue = (reportsFilterSearch_Input?.value || '').trim();
-
+    // Show all items; ignore any search input so the full deduped set is returned.
     const items = await fetchLatestByReference({
-        searchValue,
+        searchValue: null,
         statusExclusion: null,
     });
 

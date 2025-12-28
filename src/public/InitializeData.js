@@ -163,20 +163,25 @@ export async function initializeSearchSelected(
                 byUserValue: filterByUserDropdown?.value,
             })
         );
-        updateReferenceDisplay(selectedReferenceDisplay, referenceNumber);
+        updateReferenceDisplay(selectedReferenceDisplay.text = referenceNumber.toString());
     };
 
     bindOnChangeOnce(filterTypeDropdown, applySelectedFilters);
     bindOnChangeOnce(filterStatusDropdown, applySelectedFilters);
     bindOnChangeOnce(filterByUserDropdown, applySelectedFilters);
 
+    
+
     bindOnRowSelectOnce(selectedReferenceTable, (event) => {
         const row = event?.rowData || {};
         const ref = normalizeValue(
             row.referenceNumber || row.referenceNumberDisplay || row.reference
         );
-        updateReferenceDisplay(selectedReferenceDisplay, ref);
+        updateReferenceDisplay(selectedReferenceDisplay.text = ref.toString());
     });
 
+    filterTypeDropdown.disable();
+    filterStatusDropdown.disable();
+    filterByUserDropdown.disable();
     await applySelectedFilters();
 }
