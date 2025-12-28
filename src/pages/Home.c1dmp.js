@@ -246,5 +246,87 @@ await setupCreateOrEditReference(createReference_Dataset,
 
 totalInbound_Display.text = await getInboundReceivedOnlyCount() + '';
 
+// SET UP DASHBOARD MANAGEMENT SECTION
+await setupDashboardManageSection();
+// SET UP DASHBOARD ACCOUNT SECTION
+await setupDashboardAccountSection();
+// SET UP DASHBOARD SETTINGS SECTION
+await setupDashboardSettingsSection(); 
+
 
 });
+
+// SET UP DASHBOARD MANAGEMENT SECTION
+
+//Manage Section Repeater Data
+const manageData = [
+    {
+        buttonLabel: 'Manage Team',
+        linkURL: '/home?state=manageTeamMain1'
+    },
+    {
+        buttonLabel: 'Decisioning Matrix',
+        linkURL: '/home?state=manageProjectsMain1'
+    }
+    {
+        buttonLabel: 'Day Reconcil',
+        linkURL: '/home?state=manageIntegrationsMain1'
+    }
+];
+
+async function setupDashboardManageSection() {
+    manageSection_Repeater.data = manageData;
+    manageSection_Repeater.onItemReady( ($item, itemData, index) => {
+        $item(manageSection_Repeater_Item_Button).label = itemData.buttonLabel;
+        $item(manageSection_Repeater_Item_Button).onClick( async () => {
+            await wixLocationFrontend.to(itemData.linkURL);
+        });
+    });
+}
+
+// Account Section Repeater Data
+const accountData = [
+    {
+        buttonLabel: 'My Account',
+        linkURL: '/home?state=myAccountMain1'
+    },
+    {
+        buttonLabel: 'My Team',
+        linkURL: '/home?state=teamMain1'
+    }
+];  
+
+// SET UP DASHBOARD ACCOUNT SECTION
+async function setupDashboardAccountSection() {
+    accountSection_Repeater.onItemReady( ($item, itemData, index) => {
+        $item(accountSection_Repeater_Item_Button).label = itemData.buttonLabel;
+        $item(accountSection_Repeater_Item_Button).onClick( async () => {
+            await wixLocationFrontend.to(itemData.linkURL);
+        });
+    });
+}
+
+// Manage Section Repeater Data
+const settingsData = [
+    {
+        buttonLabel: 'About',
+        linkURL: '/home?state=aboutMain1'
+    },
+    {
+        buttonLabel: 'Security Settings',
+        linkURL: '/home?state=securitySettingsMain1'
+    },
+    {
+        buttonLabel: 'Help & Support',
+        linkURL: '/home?state=helpMain1'
+    }
+];  
+// SET UP DASHBOARD SETTINGS SECTION
+async function setupDashboardSettingsSection() {
+    settingsSection_Repeater.onItemReady( ($item, itemData, index) => {
+        $item(settingsSection_Repeater_Item_Button).label = itemData.buttonLabel;
+        $item(settingsSection_Repeater_Item_Button).onClick( async () => {
+            await wixLocationFrontend.to(itemData.linkURL);
+        });
+    });
+}
