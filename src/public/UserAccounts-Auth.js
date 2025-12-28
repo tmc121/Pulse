@@ -16,7 +16,7 @@ import { authentication, currentMember } from 'wix-members';
 export async function getUserAccountByMemberId(id){
     try {
         const userAccount = await wixData.query("UserAccounts")
-            .eq("connectedMemberId", id) // Changed from "memberId"
+            .eq("connectedMemberId", id.toString()) // Changed from "memberId"
             .find()
             .then((results) => {
                 if (results.items.length > 0) {
@@ -39,7 +39,7 @@ export async function getUserAccountByEmail(email){
 
     try {
         const userAccount = await wixData.query("UserAccounts")
-            .eq("loginEmail", email.toLowerCase())
+            .eq("loginEmail", email)
             .find()
             .then((results) => {
                 if (results.items.length > 0) {

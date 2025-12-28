@@ -94,7 +94,7 @@ $w.onReady(async function () {
       // Update the current user's account to link them to the team admin
       const results = await wixData
         .query('UserAccounts')
-        .eq('memberId', member._id)
+        .eq('connectedMemberId', member._id)
         .find({ suppressAuth: true, suppressHooks: true });
 
       if (results.items && results.items.length > 0) {

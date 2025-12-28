@@ -49,8 +49,8 @@ $w.onReady(function () {
       if (member && member._id) {
         // Insert new user into UserAccounts collection
         const newUserAccount = {
-          memberId: member._id,
-          userId: '', // Use email prefix as userId Leave Blank for admin to fill in later
+          connectedMemberId: member._id,
+          userId: '', // Use prefix 3 letters and 3 numbers following as userId Leave Blank for admin to fill in later Ex: ABC123
           loginEmail: email, // Store login email
           firstName: firstName,
           lastName: lastName,
