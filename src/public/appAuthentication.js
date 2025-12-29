@@ -10,10 +10,17 @@ import { primaryNavigate } from './appNavigation';
 // THIS FILE WILL CONTAIN ALL FUNCTIONS RELATED TO APP AUTHENTICATION
 // THIS WILL HELP WITH FUNCTIONS INSIDE THE MASTER PAGE AND OTHER PAGES TO CALL THESE FUNCTIONS FROM HERE RATHER THAN REWRITING THE SAME FUNCTION IN MULTIPLE PAGES
 
-const primary_MyAccountState = 'myAccountStateMain1';
-const primary_TeamState = 'teamStateMain1';
-const primary_Dashboard = 'dashboardMain1';
-const primaryMultiState = $w('#multiStateBox1');
+const primary_MyAccountState = 'myAccountMain1';
+const primary_TeamState = 'teamMain1';
+const primary_Dashboard = 'dashboard';
+
+function getPrimaryMultiState() {
+    try {
+        return $w('#multiStateBox1');
+    } catch (_e) {
+        return null;
+    }
+}
 
 // THIS FUNCTION WILL CHECK IF A MEMBER IS LOGGED IN AND RETURN THE MEMBER DETAILS
 export async function getLoggedInMemberId(){
@@ -46,15 +53,30 @@ export async function loggedInMember(mainLoginButton, quickMenuWrapper, quickMen
             });
             quickMenuAccountButton.onClick(async () => {
                 quickMenuWrapper.collapse();
-                wixLocationFrontend.to('/home');
+                const ms = getPrimaryMultiState();
+                if (ms) {
+                    await primaryNavigate(ms, primary_MyAccountState);
+                } else {
+                    wixLocationFrontend.to('/home');
+                }
             });
             quickMenuTeamButton.onClick(async () => {
                 quickMenuWrapper.collapse();
-                wixLocationFrontend.to('/home');
+                const ms = getPrimaryMultiState();
+                if (ms) {
+                    await primaryNavigate(ms, primary_TeamState);
+                } else {
+                    wixLocationFrontend.to('/home');
+                }
             });
             quickMenuManageButton.onClick(async () => {
                 quickMenuWrapper.collapse();
-                wixLocationFrontend.to('/home');
+                const ms = getPrimaryMultiState();
+                if (ms) {
+                    await primaryNavigate(ms, primary_Dashboard);
+                } else {
+                    wixLocationFrontend.to('/home');
+                }
             });
             quickMenuLogoutButton.onClick(async () => {
                 quickMenuWrapper.collapse();
@@ -113,15 +135,30 @@ export async function onMemberLogin(mainLoginButton, quickMenuWrapper, quickMenu
             });
             quickMenuAccountButton.onClick(async () => {
                 quickMenuWrapper.collapse();
-                await primaryNavigate(primaryMultiState, primary_MyAccountState);
+                const ms = getPrimaryMultiState();
+                if (ms) {
+                    await primaryNavigate(ms, primary_MyAccountState);
+                } else {
+                    wixLocationFrontend.to('/home');
+                }
             });
             quickMenuTeamButton.onClick(async () => {
                 quickMenuWrapper.collapse();
-                await primaryNavigate(primaryMultiState, primary_TeamState);
+                const ms = getPrimaryMultiState();
+                if (ms) {
+                    await primaryNavigate(ms, primary_TeamState);
+                } else {
+                    wixLocationFrontend.to('/home');
+                }
             });
             quickMenuManageButton.onClick(async () => {
                 quickMenuWrapper.collapse();
-                await primaryNavigate(primaryMultiState, primary_Dashboard);
+                const ms = getPrimaryMultiState();
+                if (ms) {
+                    await primaryNavigate(ms, primary_Dashboard);
+                } else {
+                    wixLocationFrontend.to('/home');
+                }
             });
             quickMenuLogoutButton.onClick(async () => {
                 quickMenuWrapper.collapse();
