@@ -164,6 +164,16 @@ const mainMenu_ReportAll_Button = $w('#mainMenu-Button-ReportAll');
 const mainMenu_CreateReference_Button = $w('#mainMenu-Button-CreateReference');
 
 $w.onReady( async function () {
+    // If not logged in, send user to No Access state and prompt login
+    const member = await currentMember.getMember();
+    if (!member) {
+        noAccess_MainTitle_DisplayText.text = 'Login Required';
+        noAccess_Title_DisplayText.text = 'Please sign in to continue';
+        noAccess_Subtitle_DisplayText.text = 'Access to InComm requires a member login.';
+        noAccess_AdditionalDetails_DisplayText.text = 'Use the SignUp/Login button in the header to authenticate.';
+        await primaryNavigate(primaryMultiState, primary_NoAccessState);
+        return;
+    }
   
     // SEARCH ON INPUT (debounced to avoid rapid state flips)
     searchInput.onInput(() => {
