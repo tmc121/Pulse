@@ -88,16 +88,18 @@ export async function setMyTeamPage(
         if (checkbox && typeof checkbox.collapse === 'function') {
             checkbox.collapse();
         }
+        const fullName = `${itemData.firstName || ''} ${itemData.lastName || ''}`.trim();
+        const userId = (itemData.userId || '').toString().toUpperCase();
+        const email = itemData.loginEmail || itemData.email || '';
+        const status = itemData.status || itemData.accountStatus || '';
         if (button) {
-            const fullName = `${itemData.firstName || ''} ${itemData.lastName || ''}`.trim();
-            const userId = (itemData.userId || '').toString().toUpperCase();
             button.label = fullName && userId ? `${fullName} (${userId})` : userId || fullName || 'Team Member';
-            button.onClick(async () => {
+            button.onClick(() => {
                 if (selectedTeamTitle) selectedTeamTitle.text = `Team Member: ${fullName || '-'}`;
                 if (selectedTeamUserID) selectedTeamUserID.text = `User ID: ${userId || '-'}`;
                 if (selectedTeamFullName) selectedTeamFullName.text = `Full Name: ${fullName || '-'}`;
-                if (selectedTeamEmail) selectedTeamEmail.text = `Email: ${itemData.loginEmail || '-'}`;
-                if (teamItemStatusButton) teamItemStatusButton.label = `Status: ${itemData.status || '-'}`;
+                if (selectedTeamEmail) selectedTeamEmail.text = `Email: ${email || '-'}`;
+                if (teamItemStatusButton) teamItemStatusButton.label = `Status: ${status || '-'}`;
             });
         }
     });
