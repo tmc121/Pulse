@@ -27,6 +27,15 @@ function getPrimaryMultiState() {
     }
 }
 
+// Safe selector to avoid runtime errors on pages without the element
+function selectOrNull(selector) {
+    try {
+        return $w(selector);
+    } catch (_e) {
+        return null;
+    }
+}
+
 // THIS FUNCTION WILL CHECK IF A MEMBER IS LOGGED IN AND RETURN THE MEMBER DETAILS
 export async function getLoggedInMemberId(){
     
@@ -70,18 +79,34 @@ export async function loggedInMember(mainLoginButton, quickMenuWrapper, quickMen
                 const ms = getPrimaryMultiState();
                 if (ms) {
                     await primaryNavigate(ms, primary_TeamState);
-                    await setMyTeamPage(
-                        $w('#myTeam-Exit-Button'),
-                        $w('#myTeam-Team-Repeater'),
-                        $w('#myTeam-TeamItem-box'),
-                        $w('#myTeam-TeamItem-CheckBox'),
-                        $w('#myTeam-TeamItem-Button'),
-                        $w('#myTeam-SelectedTeam-Title'),
-                        $w('#myTeam-SelectedTeam-UserId'),
-                        $w('#myTeam-SelectedTeam-FullName'),
-                        $w('#myTeam-SelectedTeam-Email'),
-                        $w('#myTeam-SelectedTeam-Status-Button')
-                    );
+                    const teamElements = [
+                        selectOrNull('#myTeam-Exit-Button'),
+                        selectOrNull('#myTeam-Team-Repeater'),
+                        selectOrNull('#myTeam-TeamItem-box'),
+                        selectOrNull('#myTeam-TeamItem-CheckBox'),
+                        selectOrNull('#myTeam-TeamItem-Button'),
+                        selectOrNull('#myTeam-SelectedTeam-Title'),
+                        selectOrNull('#myTeam-SelectedTeam-UserId'),
+                        selectOrNull('#myTeam-SelectedTeam-FullName'),
+                        selectOrNull('#myTeam-SelectedTeam-Email'),
+                        selectOrNull('#myTeam-SelectedTeam-Status-Button')
+                    ];
+                    if (teamElements.every(Boolean)) {
+                        await setMyTeamPage(
+                            teamElements[0],
+                            teamElements[1],
+                            teamElements[2],
+                            teamElements[3],
+                            teamElements[4],
+                            teamElements[5],
+                            teamElements[6],
+                            teamElements[7],
+                            teamElements[8],
+                            teamElements[9]
+                        );
+                    } else {
+                        console.warn('My Team elements missing on this page; skipping setMyTeamPage');
+                    }
                 } else {
                     wixLocationFrontend.to('/home');
                 }
@@ -91,22 +116,42 @@ export async function loggedInMember(mainLoginButton, quickMenuWrapper, quickMen
                 const ms = getPrimaryMultiState();
                 if (ms) {
                     await primaryNavigate(ms, primary_ManageTeamState);
-                    await setManageTeamPage(
-                        $w('#manageTeam-Close-Button'),
-                        $w('#manageTeam-EditAccounts-Button'),
-                        $w('#manageTeam-NewAccount-Button'),
-                        $w('#manageTeam-Accounts-Repeater'),
-                        $w('#manageTeam-DisplayAccount-Item-Button'),
-                        $w('#manageTeam-AccountItem-CheckBox'),
-                        $w('#manageTeam-SelectedItem-DisplayWrapper'),
-                        $w('#manageTeam-SelectedItem-UserID-Text'),
-                        $w('#manageTeam-SelectedItem-FullName-Text'),
-                        $w('#manageTeam-SelectedItem-Email-Text'),
-                        $w('#manageTeam-SelectedItem-Status-Button'),
-                        $w('#manageTeam-SelectedItem-DisableAccount-Button'),
-                        $w('#manageTeam-SelectedItem-Discard-Button'),
-                        $w('#manageTeam-SelectedItem-Save-Button')
-                    );
+                    const manageElements = [
+                        selectOrNull('#manageTeam-Close-Button'),
+                        selectOrNull('#manageTeam-EditAccounts-Button'),
+                        selectOrNull('#manageTeam-NewAccount-Button'),
+                        selectOrNull('#manageTeam-Accounts-Repeater'),
+                        selectOrNull('#manageTeam-DisplayAccount-Item-Button'),
+                        selectOrNull('#manageTeam-AccountItem-CheckBox'),
+                        selectOrNull('#manageTeam-SelectedItem-DisplayWrapper'),
+                        selectOrNull('#manageTeam-SelectedItem-UserID-Text'),
+                        selectOrNull('#manageTeam-SelectedItem-FullName-Text'),
+                        selectOrNull('#manageTeam-SelectedItem-Email-Text'),
+                        selectOrNull('#manageTeam-SelectedItem-Status-Button'),
+                        selectOrNull('#manageTeam-SelectedItem-DisableAccount-Button'),
+                        selectOrNull('#manageTeam-SelectedItem-Discard-Button'),
+                        selectOrNull('#manageTeam-SelectedItem-Save-Button')
+                    ];
+                    if (manageElements.every(Boolean)) {
+                        await setManageTeamPage(
+                            manageElements[0],
+                            manageElements[1],
+                            manageElements[2],
+                            manageElements[3],
+                            manageElements[4],
+                            manageElements[5],
+                            manageElements[6],
+                            manageElements[7],
+                            manageElements[8],
+                            manageElements[9],
+                            manageElements[10],
+                            manageElements[11],
+                            manageElements[12],
+                            manageElements[13]
+                        );
+                    } else {
+                        console.warn('Manage Team elements missing on this page; skipping setManageTeamPage');
+                    }
                 } else {
                     wixLocationFrontend.to('/home');
                 }
@@ -189,22 +234,42 @@ export async function onMemberLogin(mainLoginButton, quickMenuWrapper, quickMenu
                 const ms = getPrimaryMultiState();
                 if (ms) {
                     await primaryNavigate(ms, primary_ManageTeamState);
-                    await setManageTeamPage(
-                        $w('#manageTeam-Exit-Button'),
-                        $w('#manageTeam-EditAccounts-Button'),
-                        $w('#manageTeam-NewAccount-Button'),
-                        $w('#manageTeam-Accounts-Repeater'),
-                        $w('#manageTeam-DisplayAccount-Item-Button'),
-                        $w('#manageTeam-AccountItem-CheckBox'),
-                        $w('#manageTeam-SelectedItem-DisplayWrapper'),
-                        $w('#manageTeam-SelectedItem-UserID-Text'),
-                        $w('#manageTeam-SelectedItem-FullName-Text'),
-                        $w('#manageTeam-SelectedItem-Email-Text'),
-                        $w('#manageTeam-SelectedItem-Status-Button'),
-                        $w('#manageTeam-SelectedItem-DisableAccount-Button'),
-                        $w('#manageTeam-SelectedItem-Discard-Button'),
-                        $w('#manageTeam-SelectedItem-Save-Button')
-                    );  
+                    const manageElements = [
+                        selectOrNull('#manageTeam-Exit-Button'),
+                        selectOrNull('#manageTeam-EditAccounts-Button'),
+                        selectOrNull('#manageTeam-NewAccount-Button'),
+                        selectOrNull('#manageTeam-Accounts-Repeater'),
+                        selectOrNull('#manageTeam-DisplayAccount-Item-Button'),
+                        selectOrNull('#manageTeam-AccountItem-CheckBox'),
+                        selectOrNull('#manageTeam-SelectedItem-DisplayWrapper'),
+                        selectOrNull('#manageTeam-SelectedItem-UserID-Text'),
+                        selectOrNull('#manageTeam-SelectedItem-FullName-Text'),
+                        selectOrNull('#manageTeam-SelectedItem-Email-Text'),
+                        selectOrNull('#manageTeam-SelectedItem-Status-Button'),
+                        selectOrNull('#manageTeam-SelectedItem-DisableAccount-Button'),
+                        selectOrNull('#manageTeam-SelectedItem-Discard-Button'),
+                        selectOrNull('#manageTeam-SelectedItem-Save-Button')
+                    ];
+                    if (manageElements.every(Boolean)) {
+                        await setManageTeamPage(
+                            manageElements[0],
+                            manageElements[1],
+                            manageElements[2],
+                            manageElements[3],
+                            manageElements[4],
+                            manageElements[5],
+                            manageElements[6],
+                            manageElements[7],
+                            manageElements[8],
+                            manageElements[9],
+                            manageElements[10],
+                            manageElements[11],
+                            manageElements[12],
+                            manageElements[13]
+                        );
+                    } else {
+                        console.warn('Manage Team elements missing on this page; skipping setManageTeamPage');
+                    }
                 } else {
                     wixLocationFrontend.to('/home');
                 }

@@ -2,6 +2,7 @@
 import { authentication, currentMember } from "wix-members-frontend";
 import wixData from "wix-data";
 import wixLocationFrontend from 'wix-location-frontend';
+import wixWindowFrontend from 'wix-window-frontend';
 
 const signUp_FirstName_Input = $w('#SignUp-FirstName-Input');
 const signUp_LastName_Input = $w('#SignUp-LastName-Input');
@@ -57,7 +58,7 @@ $w.onReady(function () {
           status: 'Active', // Default status
           teamAdmin: [], // Leave empty array; Get Team will add one or more admin refs later
           adminAccount: false, // New users are not admin accounts by default
-          createdDate: new Date(),
+          _createdDate: new Date(),
           _updatedDate: new Date()
         };
         
@@ -68,8 +69,9 @@ $w.onReady(function () {
       signUp_ResultsStatus_Text.text = "Sign up successful! Redirecting...";
       
       // Refresh to home without query params
-      setTimeout(() => {
-        wixLocationFrontend.to('/home');
+      // Redirect to Get Team lightbox after short delay to assign a team admin to User Account. This is required to Operate the app.
+      setTimeout(async() => {
+        wixLocationFrontend.to('/') // Redirect to home page
       }, 1500);
     } catch (error) {
       console.error(error);
