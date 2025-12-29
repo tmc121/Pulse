@@ -168,7 +168,19 @@ $w.onReady( async function () {
     // If not logged in, send user to No Access state and prompt login
     const member = await currentMember.getMember();
     if (!member) {
-        await showNoAccessState('Login Required', 'Please sign in to continue', 'Access to InComm requires a member login.', 'Use the SignUp/Login button in the header to authenticate.', primaryMultiState, {});
+        await showNoAccessState(
+            primaryMultiState,
+            noAccess_MainTitle_DisplayText,
+            noAccess_Title_DisplayText,
+            noAccess_Subtitle_DisplayText,
+            noAccess_AdditionalDetails_DisplayText,
+            {
+                mainTitleText: 'Login Required',
+                titleText: 'Please sign in to continue',
+                subtitleText: 'Access to InComm requires a member login.',
+                detailsText: 'Use the SignUp/Login button in the header to authenticate.'
+            }
+        );
         return;
     }
   
@@ -303,17 +315,17 @@ await loadUserAccountPageData(
 //Manage Section Repeater Data
 const manageData = [
     {
-        id: 1,
+        _id: 'manage-1',
         buttonLabel: 'Manage Team',
         linkState: 'manageTeamMain1'
     },
     {
-        id: 2,
+        _id: 'manage-2',
         buttonLabel: 'Decisioning Matrix',
         linkState: 'manageDecisioningMatrixMain1'
     },
     {   
-        id: 3,
+        _id: 'manage-3',
         buttonLabel: 'Day Reconcil',
         linkState: 'manageDayReconMain1'
     }
@@ -354,12 +366,12 @@ async function setupDashboardManageSection() {
 // Account Section Repeater Data
 const accountData = [
     {   
-        id: 1,
+        _id: 'account-1',
         buttonLabel: 'My Account',
         linkState: 'myAccountMain1'
     },
     {  
-        id: 2,
+        _id: 'account-2',
         buttonLabel: 'My Team',
         linkState: 'teamMain1'
     }
@@ -403,17 +415,17 @@ async function setupDashboardAccountSection() {
 // Manage Section Repeater Data
 const settingsData = [
     {   
-        id: 1,
+        _id: 'settings-1',
         buttonLabel: 'About',
         linkState: 'aboutMain1'
     },
     {   
-        id: 2,
+        _id: 'settings-2',
         buttonLabel: 'Security Settings',
         linkState: 'securitySettingsMain1'
     },
     {   
-        id: 3,
+        _id: 'settings-3',
         buttonLabel: 'Help & Support',
         linkState: 'helpMain1'
     }
