@@ -7,10 +7,13 @@ import { authentication, currentMember } from 'wix-members-frontend';
 import { getUserAccountByMemberId } from 'public/UserAccounts-Auth.js';
 import wixLocationFrontend from 'wix-location-frontend';
 import { primaryNavigate } from './appNavigation';
-import { quickMenuHelper } from './Home.c1dmp.js';
 // THIS FILE WILL CONTAIN ALL FUNCTIONS RELATED TO APP AUTHENTICATION
 // THIS WILL HELP WITH FUNCTIONS INSIDE THE MASTER PAGE AND OTHER PAGES TO CALL THESE FUNCTIONS FROM HERE RATHER THAN REWRITING THE SAME FUNCTION IN MULTIPLE PAGES
 
+const primary_MyAccountState = 'myAccountStateMain1';
+const primary_TeamState = 'teamStateMain1';
+const primary_Dashboard = 'dashboardMain1';
+const primaryMultiState = $w('#multiStateBox1');
 
 // THIS FUNCTION WILL CHECK IF A MEMBER IS LOGGED IN AND RETURN THE MEMBER DETAILS
 export async function getLoggedInMemberId(){
@@ -43,16 +46,15 @@ export async function loggedInMember(mainLoginButton, quickMenuWrapper, quickMen
             });
             quickMenuAccountButton.onClick(async () => {
                 quickMenuWrapper.collapse();
-                // Refresh home; in-page state change happens on Home load
-                await quickMenuHelper(quickMenuAccountButton,"","");
+                wixLocationFrontend.to('/home');
             });
             quickMenuTeamButton.onClick(async () => {
                 quickMenuWrapper.collapse();
-                await quickMenuHelper("",quickMenuTeamButton,"");
+                wixLocationFrontend.to('/home');
             });
             quickMenuManageButton.onClick(async () => {
                 quickMenuWrapper.collapse();
-                await quickMenuHelper("","",quickMenuManageButton);
+                wixLocationFrontend.to('/home');
             });
             quickMenuLogoutButton.onClick(async () => {
                 quickMenuWrapper.collapse();
@@ -112,14 +114,17 @@ export async function onMemberLogin(mainLoginButton, quickMenuWrapper, quickMenu
             quickMenuAccountButton.onClick(async () => {
                 quickMenuWrapper.collapse();
                 wixLocationFrontend.to('/home');
+                await primaryNavigate(primaryMultiState, primary_MyAccountState);
             });
             quickMenuTeamButton.onClick(async () => {
                 quickMenuWrapper.collapse();
                 wixLocationFrontend.to('/home');
+                await primaryNavigate(primaryMultiState, primary_TeamState);
             });
             quickMenuManageButton.onClick(async () => {
                 quickMenuWrapper.collapse();
                 wixLocationFrontend.to('/home');
+                await primaryNavigate(primaryMultiState, primary_Dashboard);
             });
             quickMenuLogoutButton.onClick(async () => {
                 quickMenuWrapper.collapse();
@@ -221,3 +226,5 @@ export async function showNoAccessState(primaryMultiState,
         throw error;
     }
 }
+
+
