@@ -9,6 +9,7 @@ import { initializeSearch, initializeSearchSelected, setupCreateOrEditReference 
 import { reportsInNotReceived, reportsNotDelivered, reportsAllInbound ,getInboundReceivedOnlyCount} from 'public/appReports.js';
 import { loadUserAccountPageData } from 'public/appMyAccount.js';
 import { showNoAccessState } from 'public/appAuthentication';
+import { setMyTeamPage } from 'public/appMyTeam.js';
 
 // MULTISTATE BOXES
 
@@ -448,6 +449,18 @@ async function setupDashboardAccountSection() {
                         break;
                     case 'teamMain1':
                         await primaryNavigate(primaryMultiState, primary_TeamState);
+                        await setMyTeamPage(
+                            myTeam_Close_Button,
+                            myTeam_Team_Repeater,
+                            myTeam_TeamItem_Box,
+                            myTeam_TeamItem_CheckBox,
+                            myTeam_TeamItem_Button,
+                            myTeam_SelectedTeam_Title,
+                            myTeam_SelectedTeam_UserID,
+                            myTeam_SelectedTeam_FullName,
+                            myTeam_SelectedTeam_Email,
+                            myTeam_TeamItem_Status_Button
+                        );
                         break;
                     default:
                         console.error('Unknown account section link state:', itemData.linkState);

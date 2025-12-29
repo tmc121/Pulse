@@ -1,4 +1,6 @@
 // File:   src/public/appMyTeam.js
+// import { setMyTeamPage } from 'public/appMyTeam.js';
+
 import wixData from 'wix-data';
 import { primaryNavigate } from 'public/appNavigation.js';
 import { getPrimaryMultiState } from 'public/appNavigation.js';

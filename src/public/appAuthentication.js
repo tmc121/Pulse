@@ -7,6 +7,7 @@ import { authentication, currentMember } from 'wix-members-frontend';
 import { getUserAccountByMemberId } from 'public/UserAccounts-Auth.js';
 import wixLocationFrontend from 'wix-location-frontend';
 import { primaryNavigate } from './appNavigation';
+import { setMyTeamPage } from 'public/appMyTeam.js';
 // THIS FILE WILL CONTAIN ALL FUNCTIONS RELATED TO APP AUTHENTICATION
 // THIS WILL HELP WITH FUNCTIONS INSIDE THE MASTER PAGE AND OTHER PAGES TO CALL THESE FUNCTIONS FROM HERE RATHER THAN REWRITING THE SAME FUNCTION IN MULTIPLE PAGES
 
@@ -68,6 +69,18 @@ export async function loggedInMember(mainLoginButton, quickMenuWrapper, quickMen
                 const ms = getPrimaryMultiState();
                 if (ms) {
                     await primaryNavigate(ms, primary_TeamState);
+                    await setMyTeamPage(
+                        $w('#myTeam-Exit-Button'),
+                        $w('#myTeam-Team-Repeater'),
+                        $w('#myTeam-TeamItem-box'),
+                        $w('#myTeam-TeamItem-CheckBox'),
+                        $w('#myTeam-TeamItem-Button'),
+                        $w('#myTeam-SelectedTeam-Title'),
+                        $w('#myTeam-SelectedTeam-UserId'),
+                        $w('#myTeam-SelectedTeam-FullName'),
+                        $w('#myTeam-SelectedTeam-Email'),
+                        $w('#myTeam-SelectedTeam-Status-Button')
+                    );
                 } else {
                     wixLocationFrontend.to('/home');
                 }
