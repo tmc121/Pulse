@@ -134,17 +134,14 @@ async function getCurrentUserAccountOption() {
             .find({ suppressAuth: true, suppressHooks: true });
 
         const account = result.items && result.items[0];
-        if (!account) {
-            return null;
+        if (account) {
+            const label = `${normalizeValue(account.firstName)} ${normalizeValue(account.lastName)}`.trim() || account.userId || 'Account';
+            const value = account.userId || '';
+            if (value) {
+                return { label, value };
+            }
         }
-
-        const label = `${normalizeValue(account.firstName)} ${normalizeValue(account.lastName)}`.trim() || account.userId || 'Account';
-        const value = account.userId || '';
-        if (!value) {
-            return null;
-        }
-
-        return { label, value };
+        return null;
     } catch (error) {
         console.error('Error fetching current user account option:', error);
         return null;
@@ -401,9 +398,12 @@ export async function setupCreateOrEditReference(
 
         await createDataset.setFilter(wixData.filter().eq('_id', latest._id));
         await createDataset.refresh();
-        await createDataset.setCurrentItemIndex(0);
+        const total = typeof createDataset.getTotalCount === 'function' ? createDataset.getTotalCount() : 0;
+        if (total > 0 && typeof createDataset.setCurrentItemIndex === 'function') {
+            await createDataset.setCurrentItemIndex(0);
+        }
 
-        const currentItem = createDataset.getCurrentItem();
+        const currentItem = typeof createDataset.getCurrentItem === 'function' ? createDataset.getCurrentItem() : latest;
 
         if (referenceTypeInput) {
             referenceTypeInput.value = currentItem?.referenceType || '';
