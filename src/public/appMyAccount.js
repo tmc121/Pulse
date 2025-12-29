@@ -84,16 +84,17 @@ export async function loadUserAccountPageData(
         });
     } else {
         console.warn('myAccountOptionsRepeater is not defined');
-        
+
     }
 
     // UPDATE PASSWORD BUTTON HANDLER
     // THIS MULTISTATE IS NOT YET IMPLEMENTED - PLACEHOLDER FOR FUTURE - REDIRECT TO DASHBOARD FOR NOW
     updatePasswordButton.onClick(async () => {
         try {
-            await primaryNavigate($w('#multiStateBox1'), 'dashboard'); // Change to 'changePassword' when implemented
+            await primaryNavigate($w('#multiStateBox1'), 'dashboard') // Change to 'changePassword' when implemented
+            .then(async () => {
             await showNoAccessState($w('#multiStateBox1'),'No Yet Ready', 'Change Password functionality is not yet implemented.', "Contact Support for further assistance", "Click another option to exit this page.");
-            
+            });
         } catch (err) {
             console.error('Failed to navigate to Change Password', err);
             await showNoAccessState($w('#multiStateBox1'),'Error', 'An error occurred while trying to access Change Password.', "Contact Support for further assistance", "Click another option to exit this page.");
