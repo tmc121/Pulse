@@ -162,6 +162,9 @@ async function applyIdsToDataset(dataset, ids) {
 
     if (!ids || ids.length === 0) {
         await dataset.setFilter(wixData.filter().eq('_id', 'NO_MATCH_FOUND'));
+        if (typeof dataset.refresh === 'function') {
+            await dataset.refresh();
+        }
         return;
     }
 
@@ -174,6 +177,10 @@ async function applyIdsToDataset(dataset, ids) {
             filter = filter.or(wixData.filter().eq('_id', ids[i]));
         }
         await dataset.setFilter(filter);
+    }
+
+    if (typeof dataset.refresh === 'function') {
+        await dataset.refresh();
     }
 }
 

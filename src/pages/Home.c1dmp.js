@@ -164,6 +164,37 @@ const mainMenu_ReportAll_Button = $w('#mainMenu-Button-ReportAll');
 
 const mainMenu_CreateReference_Button = $w('#mainMenu-Button-CreateReference');
 
+// Map external query aliases to actual primary state ids
+const primaryStateAliases = {
+    dashboardMain1: primary_Dashboard,
+    dashboard: primary_Dashboard,
+    reportsMain: primary_ReportsState,
+    reports: primary_ReportsState,
+};
+const validPrimaryStates = new Set([
+    primary_Dashboard,
+    primary_SearchState,
+    primary_PullState,
+    primary_ReportsState,
+    primary_CreateReferenceState,
+    primary_ManageTeamState,
+    primary_ReferencedPathState,
+    primary_ManageTeamNewAccountState,
+    primary_TeamState,
+    primary_MyAccountState,
+    primary_NoAccessState,
+    primary_LoadingState,
+]);
+
+function resolvePrimaryState(raw) {
+    const normalized = typeof raw === 'string' ? raw.trim() : '';
+    if (!normalized) {
+        return null;
+    }
+    const mapped = primaryStateAliases[normalized] || normalized;
+    return validPrimaryStates.has(mapped) ? mapped : null;
+}
+
 $w.onReady( async function () {
     // If not logged in, send user to No Access state and prompt login
     const member = await currentMember.getMember();
@@ -186,9 +217,7 @@ $w.onReady( async function () {
 
     // Respect URL state overrides and default to dashboard after login/fresh login
     const query = wixLocationFrontend.query || {};
-    const requestedState = typeof query.state === 'string' && query.state.trim()
-        ? query.state.trim()
-        : null;
+    const requestedState = resolvePrimaryState(query.state);
     const isFreshLogin = query.freshLogin === 'true' || query.freshLogin === true;
     const initialState = isFreshLogin ? primary_Dashboard : (requestedState || primary_Dashboard);
     await primaryNavigate(primaryMultiState, initialState);

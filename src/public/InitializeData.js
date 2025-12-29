@@ -4,6 +4,8 @@
 import wixData from 'wix-data';
 import { currentMember } from 'wix-members-frontend';
 
+const SEARCH_PAGE_SIZE = 500;
+
 function normalizeValue(value) {
     return typeof value === 'string' ? value.trim() : value || '';
 }
@@ -52,6 +54,94 @@ async function applyFilter(dataset, filter) {
             wixData.sort().descending('updateDate').descending('_updatedDate').descending('_createdDate')
         );
     }
+}
+
+async function applyIdsToDataset(dataset, ids) {
+    if (!dataset || typeof dataset.setFilter !== 'function') {
+        return;
+    }
+
+    if (!ids || ids.length === 0) {
+        await dataset.setFilter(wixData.filter().eq('_id', 'NO_MATCH_FOUND'));
+        if (typeof dataset.refresh === 'function') {
+            await dataset.refresh();
+        }
+        return;
+    }
+
+    try {
+        await dataset.setFilter(wixData.filter().hasSome('_id', ids));
+    } catch (_e) {
+        // Fallback if hasSome is unavailable
+        let filter = wixData.filter().eq('_id', ids[0]);
+        for (let i = 1; i < ids.length; i++) {
+            filter = filter.or(wixData.filter().eq('_id', ids[i]));
+        }
+        await dataset.setFilter(filter);
+    }
+
+    if (typeof dataset.refresh === 'function') {
+        await dataset.refresh();
+    }
+
+    if (typeof dataset.setSort === 'function') {
+        await dataset.setSort(
+            wixData.sort().descending('updateDate').descending('_updatedDate').descending('_createdDate')
+        );
+    }
+}
+
+async function fetchLatestByReference({ searchValue = '', typeValue = '', statusValue = '', byUserValue = '' } = {}) {
+    let query = wixData
+        .query('DemoData')
+        .ne('referenceNumber', '')
+        .isNotEmpty('referenceNumber')
+        .descending('updateDate')
+        .descending('_updatedDate')
+        .descending('_createdDate');
+
+    const search = normalizeValue(searchValue);
+    if (search) {
+        query = query.contains('referenceNumber', search);
+    }
+    const type = normalizeValue(typeValue);
+    if (type) {
+        query = query.eq('referenceType', type);
+    }
+    const status = normalizeValue(statusValue);
+    if (status) {
+        query = query.eq('status', status);
+    }
+    const byUser = normalizeValue(byUserValue);
+    if (byUser) {
+        query = query.eq('addedByUser', byUser);
+    }
+
+    let results = await query.limit(SEARCH_PAGE_SIZE).find({ suppressAuth: true, suppressHooks: true });
+
+    const seenRefs = new Set();
+    const ids = [];
+
+    const process = (items) => {
+        for (const item of items) {
+            const ref = normalizeValue(item.referenceNumber);
+            if (!ref || seenRefs.has(ref)) {
+                continue;
+            }
+            seenRefs.add(ref);
+            if (item._id) {
+                ids.push(item._id);
+            }
+        }
+    };
+
+    process(results.items || []);
+    while (results.hasNext()) {
+        results = await results.next();
+        process(results.items || []);
+    }
+
+    return ids;
 }
 
 function bindOnChangeOnce(control, handler) {
@@ -159,15 +249,14 @@ export async function initializeSearch(
     onReferenceSelect
 ) {
     const applySearchFilters = async () => {
-        await applyFilter(
-            searchDataset,
-            buildFilter({
-                searchValue: searchInput?.value,
-                typeValue: searchTypeInput?.value,
-                statusValue: searchStatusInput?.value,
-                byUserValue: searchByUserInput?.value,
-            })
-        );
+        const ids = await fetchLatestByReference({
+            searchValue: searchInput?.value,
+            typeValue: searchTypeInput?.value,
+            statusValue: searchStatusInput?.value,
+            byUserValue: searchByUserInput?.value,
+        });
+
+        await applyIdsToDataset(searchDataset, ids);
     };
 
     bindOnChangeOnce(searchInput, applySearchFilters);
