@@ -3,16 +3,6 @@ import { authentication, currentMember } from 'wix-members-frontend';
 import wixLocationFrontend from 'wix-location-frontend';
 import wixWindowFrontend from 'wix-window-frontend';
 
-// Safe selector to avoid hard failures when an element id is missing on the page
-const $safe = (id) => {
-    try {
-        return $w(id);
-    } catch (_e) {
-        console.warn(`Element missing: ${id}`);
-        return null;
-    }
-};
-
 //IMPORTS
 import { primaryNavigate } from 'public/appNavigation.js';
 import { initializeSearch, initializeSearchSelected, setupCreateOrEditReference } from 'public/InitializeData.js';
@@ -23,7 +13,7 @@ import { showNoAccessState } from 'public/appAuthentication';
 // MULTISTATE BOXES
 
 //MAIN
-const primaryMultiState = $safe('#multiStateBox1');
+const primaryMultiState = $w('#multiStateBox1');
 // STATE PAGE ID's
 const primary_Dashboard = 'dashboard';
 const primary_SearchState = 'searchMain1';
@@ -39,171 +29,142 @@ const primary_NoAccessState = 'noAccessStateMain1';
 const primary_LoadingState = 'loadingMain1';
 
 //REPORTS 
-const reportsMultiState = $safe('#reportsMultiStateBox');
-const reportsMultiStateTitle = $safe('#reports-MultiState-Selected-Title');
-const reportsLoadingProgressBar = $safe('#report-Loading-ProgressBar');
-const reports_ResultsDataset = $safe('#resultsDataset');
+const reportsMultiState = $w('#reportsMultiStateBox');
+const reportsMultiStateTitle = $w('#reports-MultiState-Selected-Title');
+const reportsLoadingProgressBar = $w('#report-Loading-ProgressBar');
+const reports_ResultsDataset = $w('#resultsDataset');
 // STATE PAGE ID's
 const report_DashState = 'reportsDash'; // Main page when the 'primary_reportsState' is called. 
 const report_DataState = 'reportsData'; // This reports page will show data depending on a pre-configured query for dataset. 
 const report_LoadingState = 'reportsLoading';
-const report_InMenuDropdown = $safe('#reports-InMenu-Dropdown');
+const report_InMenuDropdown = $w('#reports-InMenu-Dropdown');
 // Prevent duplicate dropdown handler bindings
 let reportsMenuHandlerBound = false;
 
 // SEARCH DATA
-const search_Dataset = $safe('#searchDataset');
-const searchInput = $safe('#searchData-Search-Input');
-const searchTypeInput = $safe('#searchData-TypeDropdown-Input');
-const searchStatusInput = $safe('#searchData-StatusDropdown-Input');
-const searchByUserInput = $safe('#searchData-ByUserDropdown-Input');
-const searchSubmitButton = $safe('#searchData-Submit-SearchButton');
-const searchResults_Table = $safe('#table2');
+const search_Dataset = $w('#searchDataset');
+const searchInput = $w('#searchData-Search-Input');
+const searchTypeInput = $w('#searchData-TypeDropdown-Input');
+const searchStatusInput = $w('#searchData-StatusDropdown-Input');
+const searchByUserInput = $w('#searchData-ByUserDropdown-Input');
+const searchSubmitButton = $w('#searchData-Submit-SearchButton');
+const searchResults_Table = $w('#table2');
 let searchInputDebounce;
 
 // SELECTED REFERENCE DATA STATE CONSTANTS 
 // THIS CODE IS USED WHEN AN ITEM FROM A TABLE IS SELECTED THE ITEMS FIELD referenceNumber will be queried to retrieve the path of the referencedNumber added to the collection.
 // State Name is : primary_ReferencedPathState
 
-const selectedReferenced_Dataset = $safe('#selectedReferencedData-Dataset');
-const selectedReference_Table = $safe('#selectedReference-Table');
-const selectedReferenced_ReferenceNumber_Display = $safe('#referencePath-Selected-ReferenceNumber-Display');
-const selectedReferenced_Filter_Type_Dropdown = $safe('#referencePath-Filter-ReferencedType-Dropdown');
-const selectedReferenced_Filter_Status_Dropdown = $safe('#referencePath-Filter-ReferencedStatus-Dropdown');
-const selectedReferenced_Filter_ByUser_Dropdown = $safe('#referencePath-Filter-ReferencedByUser-Dropdown');
+const selectedReferenced_Dataset = $w('#selectedReferencedData-Dataset');
+const selectedReference_Table = $w('#selectedReference-Table');
+const selectedReferenced_ReferenceNumber_Display = $w('#referencePath-Selected-ReferenceNumber-Display');
+const selectedReferenced_Filter_Type_Dropdown = $w('#referencePath-Filter-ReferencedType-Dropdown');
+const selectedReferenced_Filter_Status_Dropdown = $w('#referencePath-Filter-ReferencedStatus-Dropdown');
+const selectedReferenced_Filter_ByUser_Dropdown = $w('#referencePath-Filter-ReferencedByUser-Dropdown');
 
 
 
 // CREATE REFERENCE
-const createReference_Dataset = $safe('#createDataset');
-const createReference_RefNumber_Input = $safe('#create-ReferenceNumber-Input');
-const createReference_Type_Input = $safe('#create-TypeDropdown-Input');
-const createReference_Status_Input = $safe('#create-StatusDropdown-Input');
-const createReference_ByUser_Input = $safe('#create-ByUserDropdown-Input');
-const createReference_SubmitButton = $safe('#create-SubmitButton');
+const createReference_Dataset = $w('#createDataset');
+const createReference_RefNumber_Input = $w('#create-ReferenceNumber-Input');
+const createReference_Type_Input = $w('#create-TypeDropdown-Input');
+const createReference_Status_Input = $w('#create-StatusDropdown-Input');
+const createReference_ByUser_Input = $w('#create-ByUserDropdown-Input');
+const createReference_SubmitButton = $w('#create-SubmitButton');
 
 
 //DASHBOARD PAGE CONSTANTS
 
-const totalInbound_Display = $safe('#dashboard-InboundSection-Total-InboundReceivedDisplay');
-const dashboard_Inbound_ViewButton = $safe('#dashboard-Inbound-ViewButton');
-const totalTeamMembers_Display = $safe('#dashboard-TeamSection-Total-TeamMembers-Display');
-const dashboard_Team_ViewButton = $safe('#dashboard-Team-ViewButton');
-const manageSection_Repeater = $safe('#dashboard-ManageSection-Repeater');
-const manageSection_Repeater_Item = $safe('#dashboard-ManageSection-Repeater-ItemBox');
-const manageSection_Repeater_Item_Button = $safe('#dashboard-ManageSection-Repeater-ItemButton');
-const accountSection_Repeater = $safe('#dashboard-AccountSection-Repeater');
-const accountSection_Repeater_Item = $safe('#dashboard-AccountSection-Repeater-ItemBox');
-const accountSection_Repeater_Item_Button = $safe('#dashboard-AccountSection-Repeater-ItemButton');
-const settingsSection_Repeater = $safe('#dashboard-SettingsSection-Repeater');
-const settingsSection_Repeater_Item = $safe('#dashboard-SettingsSection-Repeater-ItemBox');
-const settingsSection_Repeater_Item_Button = $safe('#dashboard-SettingsSection-Repeater-ItemButton');
+const totalInbound_Display = $w('#dashboard-InboundSection-Total-InboundReceivedDisplay');
+const dashboard_Inbound_ViewButton = $w('#dashboard-Inbound-ViewButton');
+const totalTeamMembers_Display = $w('#dashboard-TeamSection-Total-TeamMembers-Display');
+const dashboard_Team_ViewButton = $w('#dashboard-Team-ViewButton');
+const manageSection_Repeater = $w('#dashboard-ManageSection-Repeater');
+const manageSection_Repeater_Item = $w('#dashboard-ManageSection-Repeater-ItemBox');
+const manageSection_Repeater_Item_Button = $w('#dashboard-ManageSection-Repeater-ItemButton');
+const accountSection_Repeater = $w('#dashboard-AccountSection-Repeater');
+const accountSection_Repeater_Item = $w('#dashboard-AccountSection-Repeater-ItemBox');
+const accountSection_Repeater_Item_Button = $w('#dashboard-AccountSection-Repeater-ItemButton');
+const settingsSection_Repeater = $w('#dashboard-SettingsSection-Repeater');
+const settingsSection_Repeater_Item = $w('#dashboard-SettingsSection-Repeater-ItemBox');
+const settingsSection_Repeater_Item_Button = $w('#dashboard-SettingsSection-Repeater-ItemButton');
 
 // MANAGE TEAM ELEMENTS (THIS PAGE CAN ONLY BE VIEWED BY AN ADMIN ACCOUNT USER)
 
-const manageTeam_Close_Button = $safe('#manageTeam-Close-Button');
-const manageTeam_EditAccounts_Button = $safe('#manageTeam-EditAccounts-Button');
-const manageTeam_NewAccount_Button = $safe('#manageTeam-NewAccount-Button');
-const manageTeam_AccountsRepeater = $safe('#manageTeam-AccountsRepeater');
-const manageTeam_AccountDisplay_Item_Button = $safe('#managerTeam-DisplayAccount-Item-Button');
-const manageTeam_Account_Item_CheckBox = $safe('#item-Team-CheckBox');
-const manageTeam_SelectedItem_Display_Wrapper = $safe('#manageTeam-SelectedItem-Display-Wrapper');
-const manageTeam_SelectedItem_UserID_Text = $safe('#manageTeam-SelectedItem-UserID');
-const manageTeam_SelectedItem_FullName_Text = $safe('#manageTeam-SelectedItem-FullName');
-const manageTeam_SelectedItem_Email_Text = $safe('#manageTeam-SelectedItem-Email');
-const manageTeam_SelectedItem_Status_Button = $safe('#manageTeam-SelectedItem-Status-Button');
-const manageTeam_SelectedItem_Disable_Button = $safe('#manageTeam-SelectedItem-DisableAccount-Button');
-const manageTeam_SelectedItem_Discard_Button = $safe('#manageTeam-SelectedItem-Discard-Button');
-const manageTeam_SelectedItem_Save_Button = $safe('#manageTeam-SelectedItem-Save-Button');
+const manageTeam_Close_Button = $w('#manageTeam-Close-Button');
+const manageTeam_EditAccounts_Button = $w('#manageTeam-EditAccounts-Button');
+const manageTeam_NewAccount_Button = $w('#manageTeam-NewAccount-Button');
+const manageTeam_AccountsRepeater = $w('#manageTeam-AccountsRepeater');
+const manageTeam_AccountDisplay_Item_Button = $w('#managerTeam-DisplayAccount-Item-Button');
+const manageTeam_Account_Item_CheckBox = $w('#item-Team-CheckBox');
+const manageTeam_SelectedItem_Display_Wrapper = $w('#manageTeam-SelectedItem-Display-Wrapper');
+const manageTeam_SelectedItem_UserID_Text = $w('#manageTeam-SelectedItem-UserID');
+const manageTeam_SelectedItem_FullName_Text = $w('#manageTeam-SelectedItem-FullName');
+const manageTeam_SelectedItem_Email_Text = $w('#manageTeam-SelectedItem-Email');
+const manageTeam_SelectedItem_Status_Button = $w('#manageTeam-SelectedItem-Status-Button');
+const manageTeam_SelectedItem_Disable_Button = $w('#manageTeam-SelectedItem-DisableAccount-Button');
+const manageTeam_SelectedItem_Discard_Button = $w('#manageTeam-SelectedItem-Discard-Button');
+const manageTeam_SelectedItem_Save_Button = $w('#manageTeam-SelectedItem-Save-Button');
 
 // MY TEAM ELEMENTS (THIS PAGE CAN ONLY BE VIEWED BY AN LOGGED IN ACCOUNT USER)
 
-const myTeam_Close_Button = $safe('#myTeam-Exit-Button');
-const myTeam_Team_Repeater = $safe('#myTeam-Team-Repeater');
-const myTeam_TeamItem_Box = $safe('#myTeam-TeamItem-box');
-const myTeam_TeamItem_CheckBox = $safe('#myTeam-TeamItem-CheckBox');
-const myTeam_SelectedTeam_Title = $safe('#myTeam-SelectedTeam-Title');
-const myTeam_SelectedTeam_UserID = $safe('#myTeam-SelectedTeam-UserId');
-const myTeam_SelectedTeam_FullName = $safe('#myTeam-SelectedTeam-FullName');
-const myTeam_SelectedTeam_Email = $safe('#myTeam-SelectedTeam-Email');
-const myTeam_TeamItem_Status_Button = $safe('#myTeam-SelectedTeam-Status-Button');
+const myTeam_Close_Button = $w('#myTeam-Exit-Button');
+const myTeam_Team_Repeater = $w('#myTeam-Team-Repeater');
+const myTeam_TeamItem_Box = $w('#myTeam-TeamItem-box');
+const myTeam_TeamItem_CheckBox = $w('#myTeam-TeamItem-CheckBox');
+const myTeam_SelectedTeam_Title = $w('#myTeam-SelectedTeam-Title');
+const myTeam_SelectedTeam_UserID = $w('#myTeam-SelectedTeam-UserId');
+const myTeam_SelectedTeam_FullName = $w('#myTeam-SelectedTeam-FullName');
+const myTeam_SelectedTeam_Email = $w('#myTeam-SelectedTeam-Email');
+const myTeam_TeamItem_Status_Button = $w('#myTeam-SelectedTeam-Status-Button');
 
 // CREATE NEW ACCOUNT CONSTANTS
 
-const createNewAccount_Exit_Button = $safe('#createNewAccount-Close-Button');
-const createNewAccount_Reset_Button = $safe('#createNewAccount-Reset-Button');
-const createNewAccount_FirstName_Input = $safe('#createNewAccount-FirstName-Input');
-const createNewAccount_LastName_Input = $safe('#createNewAccount-LastName-Input');
-const createNewAccount_UserId_Input = $safe('#createNewAccount-UserId-Input');
-const createNewAccount_Status_DisplayText = $safe('#createNewAccount-UserID-Status-DisplayText');
-const createNewAccount_MemberAccountLink_Dropdown_Input = $safe('#createNewAccount-MemberAccount-Dropdown-Input');
-const createNewAccount_Discard_Button = $safe('#createNewAccount-Discard-Button');
-const createNewAccount_SaveUpdate_Button = $safe('#createNewAccount-SaveUpdate-Button');
+const createNewAccount_Exit_Button = $w('#createNewAccount-Close-Button');
+const createNewAccount_Reset_Button = $w('#createNewAccount-Reset-Button');
+const createNewAccount_FirstName_Input = $w('#createNewAccount-FirstName-Input');
+const createNewAccount_LastName_Input = $w('#createNewAccount-LastName-Input');
+const createNewAccount_UserId_Input = $w('#createNewAccount-UserId-Input');
+const createNewAccount_Status_DisplayText = $w('#createNewAccount-UserID-Status-DisplayText');
+const createNewAccount_MemberAccountLink_Dropdown_Input = $w('#createNewAccount-MemberAccount-Dropdown-Input');
+const createNewAccount_Discard_Button = $w('#createNewAccount-Discard-Button');
+const createNewAccount_SaveUpdate_Button = $w('#createNewAccount-SaveUpdate-Button');
 
 
 
 // My Account Page Constants
 
-const myAccount_Exit_Button = $safe('#myAccount-Exit-Button');
-const myAccount_Options_Repeater = $safe('#myAccount-Options-Repeater');
-const myAccount_Options_Repeater_Item = $safe('#myAccount-Options-Repeater-Item'); // Already Set
-const myAccount_Options_Repeater_Item_Button = $safe('#myAccount-Options-Repeater-Item-Button'); // Already Set
-const myAccount_UserId_DisplayText = $safe('#myAccount-UserID-DisplayText');
-const myAccount_FullName_DisplayText = $safe('#myAccount-FullName-DisplayText');
-const myAccount_Email_DisplayText = $safe('#myAccount-Email-DisplayText');
-const myAccount_StatusDisplay_Button = $safe('#myAccount-Status-Display-Button');
-const myAccount_UpdatePassword_Button = $safe('#myAccount-UpdatePassword-Button');
+const myAccount_Exit_Button = $w('#myAccount-Exit-Button');
+const myAccount_Options_Repeater = $w('#myAccount-Options-Repeater');
+const myAccount_Options_Repeater_Item = $w('#myAccount-Options-Repeater-Item'); // Already Set
+const myAccount_Options_Repeater_Item_Button = $w('#myAccount-Options-Repeater-Item-Button'); // Already Set
+const myAccount_UserId_DisplayText = $w('#myAccount-UserID-DisplayText');
+const myAccount_FullName_DisplayText = $w('#myAccount-FullName-DisplayText');
+const myAccount_Email_DisplayText = $w('#myAccount-Email-DisplayText');
+const myAccount_StatusDisplay_Button = $w('#myAccount-Status-Display-Button');
+const myAccount_UpdatePassword_Button = $w('#myAccount-UpdatePassword-Button');
 
 // No Access Page Constants
 
-const noAccess_MainTitle_DisplayText = $safe('#noAccess-MainTitle-DisplayText');
-const noAccess_Title_DisplayText = $safe('#noAccess-Title-DisplayText');
-const noAccess_Subtitle_DisplayText = $safe('#noAccess-Subtitle-DisplayText');
-const noAccess_AdditionalDetails_DisplayText = $safe('#noAccess-AdditionalDetails-DisplayText');
+const noAccess_MainTitle_DisplayText = $w('#noAccess-MainTitle-DisplayText');
+const noAccess_Title_DisplayText = $w('#noAccess-Title-DisplayText');
+const noAccess_Subtitle_DisplayText = $w('#noAccess-Subtitle-DisplayText');
+const noAccess_AdditionalDetails_DisplayText = $w('#noAccess-AdditionalDetails-DisplayText');
 
 
 // MAIN MENU BUTTONS
 
-const mainMenu_Batch_Button = $safe('#mainMenu-Button-Batch');
-const mainMenu_Dashboard_Button = $safe('#mainMenu-Button-Dashboard');
-const mainMenu_Search_Button = $safe('#mainMenu-Button-Search');
+const mainMenu_Batch_Button = $w('#mainMenu-Button-Batch');
+const mainMenu_Dashboard_Button = $w('#mainMenu-Button-Dashboard');
+const mainMenu_Search_Button = $w('#mainMenu-Button-Search');
 
-const mainMenu_InNotReceived_Button = $safe('#mainMenu-Button-InNotReceived');
-const mainMenu_NotDelivered_Button = $safe('#mainMenu-Button-NotDelivered');
-const mainMenu_ReportAll_Button = $safe('#mainMenu-Button-ReportAll');
+const mainMenu_InNotReceived_Button = $w('#mainMenu-Button-InNotReceived');
+const mainMenu_NotDelivered_Button = $w('#mainMenu-Button-NotDelivered');
+const mainMenu_ReportAll_Button = $w('#mainMenu-Button-ReportAll');
 
-const mainMenu_CreateReference_Button = $safe('#mainMenu-Button-CreateReference');
+const mainMenu_CreateReference_Button = $w('#mainMenu-Button-CreateReference');
 
-// Map external query aliases to actual primary state ids
-const primaryStateAliases = {
-    dashboardMain1: primary_Dashboard,
-    dashboard: primary_Dashboard,
-    reportsMain: primary_ReportsState,
-    reports: primary_ReportsState,
-};
-const validPrimaryStates = new Set([
-    primary_Dashboard,
-    primary_SearchState,
-    primary_PullState,
-    primary_ReportsState,
-    primary_CreateReferenceState,
-    primary_ManageTeamState,
-    primary_ReferencedPathState,
-    primary_ManageTeamNewAccountState,
-    primary_TeamState,
-    primary_MyAccountState,
-    primary_NoAccessState,
-    primary_LoadingState,
-]);
-
-function resolvePrimaryState(raw) {
-    const normalized = typeof raw === 'string' ? raw.trim() : '';
-    if (!normalized) {
-        return null;
-    }
-    const mapped = primaryStateAliases[normalized] || normalized;
-    return validPrimaryStates.has(mapped) ? mapped : null;
-}
+// URL-based state overrides removed to avoid navigation side effects
 
 $w.onReady( async function () {
     // If not logged in, send user to No Access state and prompt login
@@ -225,12 +186,8 @@ $w.onReady( async function () {
         return;
     }
 
-    // Respect URL state overrides and default to dashboard after login/fresh login
-    const query = wixLocationFrontend.query || {};
-    const requestedState = resolvePrimaryState(query.state);
-    const isFreshLogin = query.freshLogin === 'true' || query.freshLogin === true;
-    const initialState = isFreshLogin ? primary_Dashboard : (requestedState || primary_Dashboard);
-    await primaryNavigate(primaryMultiState, initialState);
+    // Default to dashboard on load without relying on URL query parameters
+    await primaryNavigate(primaryMultiState, primary_Dashboard);
   
     // SEARCH ON INPUT (debounced to avoid rapid state flips)
     searchInput.onInput(() => {
