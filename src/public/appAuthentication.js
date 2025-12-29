@@ -13,6 +13,9 @@ import { primaryNavigate } from './appNavigation';
 const primary_MyAccountState = 'myAccountMain1';
 const primary_TeamState = 'teamMain1';
 const primary_Dashboard = 'dashboard';
+const primary_ManageTeamState = 'manageTeamMain1';
+
+// HELPER FUNCTION TO GET PRIMARY MULTISTATE BOX
 
 function getPrimaryMultiState() {
     try {
