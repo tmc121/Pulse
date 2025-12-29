@@ -60,7 +60,7 @@ export async function loadUserAccountPageData(
     }
 
     // SET UP ACCOUT OPTIONS REPEATER - TO BE IMPLEMENTED LATER
-    repeaterData = [
+    const repeaterData = [
         { _id: "01", label: "Update account info", primaryMultiStateLink: 'dashboard' },
         { _id: "02", label: "Change Password", primaryMultiStateLink: 'dashboard' },
         { _id: "03", label: "Preferences", primaryMultiStateLink: 'dashboard' },
