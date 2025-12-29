@@ -337,6 +337,8 @@ export async function initializeSearchSelected(
     filterStatusDropdown,
     filterByUserDropdown
 ) {
+    let isSyncingSelected = false;
+
     const setDropdownValueAndDisable = (dropdown, value, fallbackLabel = '') => {
         if (!dropdown || dropdown.options === undefined) {
             return;
@@ -361,12 +363,19 @@ export async function initializeSearchSelected(
         setDropdownValueAndDisable(filterByUserDropdown, item.addedByUser, item.addedByUser || 'Not available');
     };
 
-    const applySelectedFilters = async () => {
-        const referenceNumber = currentReferenceNumber(selectedDataset);
-        const currentItem = selectedDataset && typeof selectedDataset.getCurrentItem === 'function'
-            ? selectedDataset.getCurrentItem()
-            : null;
-        syncFiltersFromItem(currentItem);
+    const applySelectedFilters = async (referenceOverride = undefined, itemOverride = undefined) => {
+        if (isSyncingSelected) {
+            return;
+        }
+        isSyncingSelected = true;
+        const referenceNumber = referenceOverride !== undefined
+            ? referenceOverride
+            : currentReferenceNumber(selectedDataset);
+        const currentItem = itemOverride
+            || (selectedDataset && typeof selectedDataset.getCurrentItem === 'function'
+                ? selectedDataset.getCurrentItem()
+                : null);
+        // apply filter based on current dropdown values or overrides
         await applyFilter(
             selectedDataset,
             buildFilter({
@@ -376,7 +385,13 @@ export async function initializeSearchSelected(
                 byUserValue: filterByUserDropdown?.value,
             })
         );
+        // After filter/refresh, sync from the dataset's current item to ensure dropdowns reflect stored values
+        const refreshedItem = selectedDataset && typeof selectedDataset.getCurrentItem === 'function'
+            ? selectedDataset.getCurrentItem()
+            : currentItem;
+        syncFiltersFromItem(refreshedItem || currentItem);
         updateReferenceDisplay(selectedReferenceDisplay, referenceNumber);
+        isSyncingSelected = false;
     };
 
     bindOnChangeOnce(filterTypeDropdown, applySelectedFilters);
@@ -390,9 +405,9 @@ export async function initializeSearchSelected(
         const ref = normalizeValue(
             row.referenceNumber || row.referenceNumberDisplay || row.reference
         );
-        updateReferenceDisplay(selectedReferenceDisplay, ref);
         syncFiltersFromItem(row);
-        await applySelectedFilters();
+        updateReferenceDisplay(selectedReferenceDisplay, ref);
+        await applySelectedFilters(ref, row);
     });
     
     // Set up filter options for selected reference filters
