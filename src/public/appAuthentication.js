@@ -1,11 +1,11 @@
 // File:  src/public/appAuthentication.js
-// import { logoutCurrentUser, handleOnLogin, handleOnLogout, getLoggedInMemberId } from 'public/appAuthentication.js';
+// import { getLoggedInMemberId, loggedInMember, onMemberLogin, onMemberLogout } from 'public/appAuthentication.js';
+
 
 // IMPORTS
-import wixLocationFrontend from 'wix-location-frontend';
-import wixWindowFrontend from 'wix-window-frontend';
 import { authentication, currentMember } from 'wix-members-frontend';
-import { getUserAccountByMemberId, validateUserAccountAccess } from 'public/UserAccounts-Auth.js';
+import { getUserAccountByMemberId } from 'public/UserAccounts-Auth.js';
+import wixLocationFrontend from 'wix-location-frontend';
 
 // THIS FILE WILL CONTAIN ALL FUNCTIONS RELATED TO APP AUTHENTICATION
 // THIS WILL HELP WITH FUNCTIONS INSIDE THE MASTER PAGE AND OTHER PAGES TO CALL THESE FUNCTIONS FROM HERE RATHER THAN REWRITING THE SAME FUNCTION IN MULTIPLE PAGES
@@ -26,120 +26,157 @@ export async function getLoggedInMemberId(){
         throw error; // Rethrow the error for further handling if needed
     }
 }
-
-
-// THIS FUNCTION WILL LOGOUT THE CURRENT LOGGED-IN USER
-export async function logoutCurrentUser(headerLoginOutButton, headerQuickMenu) {
+export async function loggedInMember(mainLoginButton, quickMenuWrapper, quickMenuAccountButton, quickMenuTeamButton, quickMenuManageButton, quickMenuLogoutButton) {
     try {
-        await authentication.logout();
-        console.log("User logged out successfully.");
-        
-        // After logout, set up the logged-out state
-        await handleOnLogout(headerLoginOutButton, headerQuickMenu);
-        
-    } catch (error) {
-        console.error("Error logging out user:", error);
-        throw error; // Rethrow the error for further handling if needed
-    }
-}
-
-// THIS FUNCTION WILL HANDLE ON LOGIN ACTIONS
-export async function handleOnLogin(headerLoginOutButton, headerQuickMenu) {
-    try {
-        // Add any actions you want to perform on login here
-        console.log("User logged in successfully.");
-        
         const memberId = await getLoggedInMemberId();
-        console.log("Retrieved memberId for validation:", memberId);
-        const validation = await validateUserAccountAccess(memberId);
-        
-        if (!validation.isValid) {
-            // User doesn't have valid access - log them out
-            console.log("User access validation failed:", validation.reason, validation.message);
-            
-            // If user needs team assignment, redirect to Get Team page
-            if (validation.requiresTeamAssignment) {
-                console.log("User needs team assignment");
-                // Don't logout immediately, let them assign to a team first
-                headerLoginOutButton.label = "Setup Required";
-                headerLoginOutButton.onClick( async () => {
-                    try {
-                        wixWindowFrontend.openLightbox('Get Team'); // THIS IS THE POPUP LIGHTBOX FOR TEAM ASSIGNMENT
-                    } catch (error) {
-                        console.error("Error opening Get Team lightbox:", error);
-                    }
-                });
-                return;
-            }
-            
-            // For other validation failures, logout the user
-            await logoutCurrentUser(headerLoginOutButton, headerQuickMenu);
-            
-            // Show error message (you might want to show this in a popup or notification)
-            console.error("Access denied:", validation.message);
-            return;
-        }
-        
-        // User has valid access - proceed with normal login
-        const userAccount = validation.account;
-        headerLoginOutButton.label = userAccount.firstName + " " + userAccount.lastName || "Account";
-        headerLoginOutButton.onClick( async () => {
-            try {
-                // For logged-in users, toggle the quick menu
-                if (headerQuickMenu.collapsed) {
-                    headerQuickMenu.expand();
-                } else {
-                    headerQuickMenu.collapse();
-                }
-                headerQuickMenu.onMouseOut( () => {
-                    headerQuickMenu.collapse();
-                });
-            } catch (error) {
-                console.error("Error toggling header quick menu on login:", error);
-            }
-        });
-        
-        console.log("User access validated successfully for:", userAccount.firstName, userAccount.lastName);
-        
-    } catch (error) {
-        console.error("Error during login actions:", error);
-        // On error, logout the user for security
-        await logoutCurrentUser(headerLoginOutButton, headerQuickMenu);
-        throw error; // Rethrow the error for further handling if needed
-    }
-}
-
-// THIS FUNCTION WILL HANDLE ON LOGOUT ACTIONS
-export async function handleOnLogout(headerLoginOutButton, headerQuickMenu) {
-    try {
-        // Add any actions you want to perform on logout here
-        console.log("User logged out successfully.");
-        headerLoginOutButton.label = "SignUp/Login"; // Reset label to default
-        headerLoginOutButton.onClick( async () => {
-            try {
-                // For logged-out users, prompt login instead of opening menu
-                let options = {"mode": "login", "modal": true};
+        if (memberId) {
+            // Member is logged in
+            const member = await currentMember.getMember();
+            const userAccount = await getUserAccountByMemberId(member._id);
+            const displayName = userAccount?.account
+                ? `${userAccount.account.firstName || ''} ${userAccount.account.lastName || ''}`.trim() || 'Account'
+                : 'Account';
+            mainLoginButton.label = displayName;
+            mainLoginButton.onClick(async () => {
+                quickMenuWrapper.expand();
+            });
+            quickMenuAccountButton.onClick(async () => {
+                quickMenuWrapper.collapse();
+                // Navigate to My Account page
+                wixLocationFrontend.to('/home?state=myAccountMain1');
+            });
+            quickMenuTeamButton.onClick(async () => {
+                quickMenuWrapper.collapse();
+                // Navigate to Team page
+                wixLocationFrontend.to('/home?state=teamMain1');
+            });
+            quickMenuManageButton.onClick(async () => {
+                quickMenuWrapper.collapse();
+                // Navigate to Manage Team page
+                wixLocationFrontend.to('/home?state=manageTeamMain1');
+            });
+            quickMenuLogoutButton.onClick(async () => {
+                quickMenuWrapper.collapse();
+                await authentication.logout();
+                wixLocationFrontend.to('/');
+            });
+            return { member, userAccount };
+        } else {
+            // No member is logged in
+            mainLoginButton.label = 'SignUp/Login';
+            mainLoginButton.onClick(async () => {
+                // Open login/signup lightbox
+                let options = {
+                    mode: "login",
+                    modal: true,
+                };
                 await authentication.promptLogin(options);
-                // Ensure menu stays collapsed when not logged in
-                headerQuickMenu.collapse();
-            } catch (error) {
-                console.error("Error prompting login on logout:", error);
-            }
-        });
+            });
+            return null; // No member is logged in
+        }
     } catch (error) {
-        console.error("Error during logout actions:", error);
+        console.error("Error during member login check:", error);
+        setTimeout(() => {
+            mainLoginButton.label = 'Error Login In';
+        }, 1000);
+        mainLoginButton.label = 'SignUp/Login';
         throw error; // Rethrow the error for further handling if needed
     }
+}   
+/*
+const main_loginUserName_Button = $w('#header-LoginUsername-Button');
+//QUICK MENU ELEMENTS
+const main_Header_Menu_Wrapper = $w('#header-Main-QuickMenu-Wrapper');
+const main_QuickMenu_Button_Account = $w('#header-QuickMenu-Button-Account');
+const main_QuickMenu_Button_Team = $w('#header-QuickMenu-Button-Team');
+const main_QuickMenu_Button_Manage = $w('#header-QuickMenu-Button-Manage');
+const main_QuickMenu_Button_Logout = $w('#header-QuickMenu-Button-Logout');
+*/
+
+// ON LOGIN HANDLER TO SETUP THE MASTER PAGE HEADER LOGIN BUTTON AND QUICKMENU
+export async function onMemberLogin(mainLoginButton, quickMenuWrapper, quickMenuAccountButton, quickMenuTeamButton, quickMenuManageButton, quickMenuLogoutButton) {
+    authentication.onLogin(async () => {
+    try {
+        const member = await currentMember.getMember();
+        if (member) {
+            const userAccount = await getUserAccountByMemberId(member._id);
+            const displayName = userAccount?.account
+                ? `${userAccount.account.firstName || ''} ${userAccount.account.lastName || ''}`.trim() || 'Account'
+                : 'Account';
+            mainLoginButton.label = displayName;
+            mainLoginButton.onClick(async () => {
+                quickMenuWrapper.expand();
+            });
+            quickMenuAccountButton.onClick(async () => {
+                quickMenuWrapper.collapse();
+                // Navigate to My Account page
+                wixLocationFrontend.to('/home?state=myAccountMain1');
+            });
+            quickMenuTeamButton.onClick(async () => {
+                quickMenuWrapper.collapse();
+                // Navigate to Team page
+                wixLocationFrontend.to('/home?state=teamMain1');
+            });
+            quickMenuManageButton.onClick(async () => {
+                quickMenuWrapper.collapse();
+                // Navigate to Manage Team page
+                wixLocationFrontend.to('/home?state=manageTeamMain1');
+            });
+            quickMenuLogoutButton.onClick(async () => {
+                quickMenuWrapper.collapse();
+                await authentication.logout();
+                wixLocationFrontend.to('/');
+            });
+            return { member, userAccount };
+        } else {
+            mainLoginButton.label = 'SignUp/Login';
+            mainLoginButton.onClick(async () => {
+                // Open login/signup lightbox
+                let options = {
+                    mode: "login",
+                    modal: true,
+                };
+                await authentication.promptLogin(options);
+            });
+            return null; // No member is logged in
+        }
+    } catch (error) {
+        console.error("Error during member login:", error);
+        setTimeout(() => {
+            mainLoginButton.label = 'Error Login In';
+        }, 1000);
+        mainLoginButton.label = 'SignUp/Login';
+        throw error; // Rethrow the error for further handling if needed
+    }
+    });
 }
 
+// ON LOGOUT HANDLER TO RESET THE MASTER PAGE HEADER LOGIN BUTTON AND QUICKMENU
+export async function onMemberLogout(mainLoginButton, quickMenuWrapper) {
+    authentication.onLogout(async () => {
+    try {
+        mainLoginButton.label = 'SignUp/Login';
+        mainLoginButton.onClick(async () => {
+            // Open login/signup lightbox
+            let options = {
+                mode: "login",
+                modal: true,
+            };
+            await authentication.promptLogin(options);
+        });
+        quickMenuWrapper.collapse();
+    } catch (error) {
+        console.error("Error during member logout:", error);
+        throw error; // Rethrow the error for further handling if needed
+    }
+    }); 
+}
 
-// THIS FUNCTION WILL CHECK IF MEMBER USER ACCOUNT IS AN ADMIN ACCOUNT
-// CALLERS CAN USE THIS RESULT TO SUPPRESS DATA HOOKS AND AUTHENTICATION CHECKS FOR ADMIN ACCOUNTS IF NEEDED
-// RETURNS TRUE IF ADMIN ACCOUNT, FALSE IF NOT
-export async function isAdminAccount(memberId) {
+// CHECK IS USER ACCOUNR IS AN ADMIN ACCOUNT BASED ON MEMBER ID
+export async function checkUserAccountIsAdmin(memberId) {
     try {
         const userAccount = await getUserAccountByMemberId(memberId);
-        if (userAccount && userAccount.adminAccount === true) {
+        if (userAccount && userAccount.account && userAccount.account.adminAccount === true) {
             return true; // User is an admin account
         } else {
             return false; // User is not an admin account
@@ -148,32 +185,4 @@ export async function isAdminAccount(memberId) {
         console.error("Error checking if user account is admin:", error);
         throw error; // Rethrow the error for further handling if needed
     }
-}     
-
-// THIS FUNCTION WILL VALIDATE FRESH LOGIN AND HANDLE TEAM ASSIGNMENT REQUIREMENTS
-export async function validateFreshLogin() {
-    try {
-        const memberId = await getLoggedInMemberId();
-        if (!memberId) {
-            return { isValid: false, action: 'LOGIN_REQUIRED' };
-        }
-        
-        const validation = await validateUserAccountAccess(memberId);
-        
-        if (!validation.isValid) {
-            if (validation.requiresTeamAssignment) {
-                // Open Get Team lightbox popup
-                wixWindowFrontend.openLightbox('Get Team');
-                return { isValid: false, action: 'TEAM_ASSIGNMENT_OPENED', reason: validation.reason };
-            }
-            // For other validation failures, just return the failure without forcing logout here
-            return { isValid: false, action: 'LOGOUT_REQUIRED', reason: validation.reason, message: validation.message };
-        }
-        
-        return { isValid: true, account: validation.account };
-        
-    } catch (error) {
-        console.error("Error validating fresh login:", error);
-        return { isValid: false, action: 'ERROR', reason: 'ERROR' };
-    }
-}      
+}   

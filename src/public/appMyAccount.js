@@ -2,10 +2,9 @@
 // import { loadUserAccountPageData } from 'public/appMyAccount.js';
 
 // IMPORTS
-import wixData from 'wix-data';
-import { authentication, currentMember } from 'wix-members-frontend';
-import { getUserAccountByMemberId } from './UserAccounts-Auth';
+import { currentMember } from 'wix-members-frontend';
 import { primaryNavigate } from './appNavigation';
+import { getUserAccountByMemberId } from 'public/UserAccounts-Auth.js';
 
 
 // THIS FILE WILL CONFIGURE THE MY ACCOUNT PAGE FUNCTIONALITY AND DATA FOR THE USER ACCOUNTS IN APP
@@ -31,64 +30,50 @@ export async function loadUserAccountPageData(
     myAccountStatus,
     myAccountOptionsRepeater,
     myAccountOptionsRepeaterItemButton,
-    updatePasswordButton,myAccountExitButton,primaryMultiState) {
+    updatePasswordButton,
+    myAccountExitButton,
+    primaryMultiState) {
+
+    // Minimal placeholder while rebuilding account integration
     try {
         const member = await currentMember.getMember();
-        if (member && member._id) {
-            const userAccount = await getUserAccountByMemberId(member._id);
-            if (userAccount) {
-                // Populate the My Account page display fields
-                if (myAccountFullName && 'text' in myAccountFullName) {
-                    myAccountFullName.text = `${userAccount.firstName || ''} ${userAccount.lastName || ''}`.trim();
-                }
-                if (myAccountEmail && 'text' in myAccountEmail) {
-                    myAccountEmail.text = userAccount.loginEmail || 'Cannot retrieve email';
-                }
-                if (myAccountUserId && 'text' in myAccountUserId) {
-                    myAccountUserId.text = userAccount.userId || 'Cannot retrieve User ID';
-                }
-                if (myAccountStatus && 'label' in myAccountStatus) {
-                    myAccountStatus.label = userAccount.status || 'Unknown';
-                }
-
-                // Configure options repeater if present
-                if (myAccountOptionsRepeater) {
-                    const buttonSelector = typeof myAccountOptionsRepeaterItemButton === 'string'
-                        ? myAccountOptionsRepeaterItemButton
-                        : myAccountOptionsRepeaterItemButton?.id
-                            ? `#${myAccountOptionsRepeaterItemButton.id}`
-                            : null;
-
-                    myAccountOptionsRepeater.data = userAccount.teamAdmin || [];
-                    if (buttonSelector) {
-                        myAccountOptionsRepeater.onItemReady(($item, itemData) => {
-                            $item(buttonSelector).label = `Team Admin: ${itemData}`;
-                        });
-                    }
-                }
-
-                // Enable or disable update password button based on status
-                if (updatePasswordButton && typeof updatePasswordButton.enable === 'function') {
-                    if (userAccount.status === 'Active') {
-                        updatePasswordButton.enable();
-                    } else if (typeof updatePasswordButton.disable === 'function') {
-                        updatePasswordButton.disable();
-                    }
-                }
-            } else {
-                console.warn('No UserAccount found for member ID:', member._id);
+        const UserAccount = await getUserAccountByMemberId(member._id);
+        const fallbackName = UserAccount.account.firstName + ' ' + UserAccount.account.lastName || 'Member';
+        if (myAccountFullName && 'text' in myAccountFullName) {
+            myAccountFullName.text = fallbackName;
+        }
+        if (myAccountEmail && 'text' in myAccountEmail) {
+            myAccountEmail.text = UserAccount.account.loginEmail || 'Email unavailable';
+        }
+        if (myAccountUserId && 'text' in myAccountUserId) {
+            myAccountUserId.text = UserAccount.account.userId || 'ID unavailable';
+        }
+        if (myAccountStatus && 'label' in myAccountStatus) {
+            myAccountStatus.label = UserAccount.account.status || 'Status unavailable';
+        }
+        if (myAccountOptionsRepeater) {
+            myAccountOptionsRepeater.data = [];
+            const buttonSelector = typeof myAccountOptionsRepeaterItemButton === 'string'
+                ? myAccountOptionsRepeaterItemButton
+                : myAccountOptionsRepeaterItemButton?.id
+                    ? `#${myAccountOptionsRepeaterItemButton.id}`
+                    : null;
+            if (buttonSelector) {
+                myAccountOptionsRepeater.onItemReady(($item) => {
+                    $item(buttonSelector).label = 'Team Admin: (none)';
+                });
             }
-        } else {
-            console.warn('No logged-in member found.');
+        }
+        if (updatePasswordButton && typeof updatePasswordButton.enable === 'function') {
+            updatePasswordButton.enable();
         }
     } catch (error) {
-        console.error('Error loading UserAccount data for My Account page:', error);
-        // Do not rethrow; we still want the page to continue
+        console.error('My Account placeholder load error:', error);
     }
 
     if (myAccountExitButton && typeof myAccountExitButton.onClick === 'function') {
         myAccountExitButton.onClick(async () => {
-            await primaryNavigate(primaryMultiState, 'dashboard'); // Navigate back to dashboard state
+            await primaryNavigate(primaryMultiState, 'dashboard');
         });
     }
-}
+}   

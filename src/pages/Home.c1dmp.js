@@ -7,7 +7,6 @@ import wixWindowFrontend from 'wix-window-frontend';
 import { primaryNavigate } from 'public/appNavigation.js';
 import { initializeSearch, initializeSearchSelected, setupCreateOrEditReference } from 'public/InitializeData.js';
 import { reportsInNotReceived, reportsNotDelivered, reportsAllInbound ,getInboundReceivedOnlyCount} from 'public/appReports.js';
-import { validateFreshLogin } from 'public/appAuthentication.js';
 import { loadUserAccountPageData } from 'public/appMyAccount.js';
 
 // MULTISTATE BOXES
@@ -165,27 +164,7 @@ const mainMenu_ReportAll_Button = $w('#mainMenu-Button-ReportAll');
 const mainMenu_CreateReference_Button = $w('#mainMenu-Button-CreateReference');
 
 $w.onReady( async function () {
-    // CHECK FOR FRESH LOGIN AND VALIDATE USER ACCESS
-    const urlParams = new URLSearchParams(wixLocationFrontend.query);
-    if (urlParams.has('freshLogin')) {
-        console.log('Fresh login detected - validating user access...');
-        const validation = await validateFreshLogin();
-        
-        if (!validation.isValid) {
-            console.log('User validation failed:', validation.action, validation.reason);
-            // The validateFreshLogin function already handles the appropriate popup/action
-            // For team assignment, it opens the Get Team lightbox
-            // For login issues, it prompts login
-            return;
-        }
-        
-        if (validation.isValid) {
-            console.log('User validation successful for:', validation.account.firstName, validation.account.lastName);
-            // Remove the freshLogin parameter from URL
-            wixLocationFrontend.to('/home');
-        }
-    }
-
+  
     // SEARCH ON INPUT (debounced to avoid rapid state flips)
     searchInput.onInput(() => {
         if (searchInputDebounce) {
