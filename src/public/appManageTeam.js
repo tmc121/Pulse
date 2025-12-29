@@ -122,35 +122,29 @@ export async function setManageTeamPage(
         }
         accountsRepeater.data = teamMembers;
         accountsRepeater.onItemReady(($item, itemData) => {
-            $item('#managerTeam-DisplayAccount-Item-Button').label = `${itemData.firstName} ${itemData.lastName} (${itemData.userId.toUpperCase()})`;
+            $item('#managerTeam-DisplayAccount-Item-Button').label = `${itemData.firstName} ${itemData.lastName} + '•' +(${itemData.userId.toUpperCase()})`;
             $item('#item-Team-CheckBox').checked = false; // Default unchecked
             $item('#managerTeam-DisplayAccount-Item-Button').onClick(() => {
-                // Populate selected item details
-                if (selectedItemUserIDText) selectedItemUserIDText.text = `User ID: ${itemData.userId.toUpperCase()}`;
-                if (selectedItemFullNameText) selectedItemFullNameText.text = `Full Name: ${itemData.firstName} ${itemData.lastName}`;
-                if (selectedItemEmailText) selectedItemEmailText.text = `Email: ${itemData.loginEmail}`;
-                if (selectedItemStatusButton) selectedItemStatusButton.label = `Status: ${itemData.status || 'Unknown'}`;
-                if (selectedItemDisableButton) {
-                    selectedItemDisableButton.onClick(() => {
-                        // TO BE IMPLEMENTED LATER
-                        console.log('Disable Account button clicked - functionality to be implemented.');
-                    });
-                }
-                // Additional functionality for discard and save buttons to be implemented later
-                if (selectedItemDiscardButton) {
-                    selectedItemDiscardButton.onClick(() => {
-                        // TO BE IMPLEMENTED LATER
-                        console.log('Discard Changes button clicked - functionality to be implemented.');
-                    });
-                }
-                if (selectedItemSaveButton) {
-                    selectedItemSaveButton.onClick(() => {
-                        // TO BE IMPLEMENTED LATER
-                        console.log('Save Changes button clicked - functionality to be implemented.');
-                    });
-                }
-                console.log(`Selected team member: ${itemData.firstName} ${itemData.lastName}`);
-                                
+
+                selectedItemFullNameText.text = `${itemData.firstName} ${itemData.lastName}`;
+                selectedItemUserIDText.text = itemData.userId.toUpperCase();
+                selectedItemEmailText.text = itemData.loginEmail;
+                selectedItemStatusButton.label = `Status: ${itemData.status || 'Unknown'}`;
+                // Additional setup for disable, discard, save buttons to be implemented later
+                selectedItemDisplayWrapper.expand();
+                selectedItemDisableButton.label = itemData.status === 'Disabled' ? 'Enable Account' : 'Disable Account';
+                selectedItemDisableButton.onClick(() => {
+                    // TO BE IMPLEMENTED LATER
+                    console.log(`Toggle disable for account: ${itemData.userId}`);
+                });
+                selectedItemDiscardButton.onClick(() => {
+                    // TO BE IMPLEMENTED LATER
+                    console.log(`Discard changes for account: ${itemData.userId}`);
+                });
+                selectedItemSaveButton.onClick(() => {
+                    // TO BE IMPLEMENTED LATER
+                    console.log(`Save changes for account: ${itemData.userId}`);
+                }); 
             });
         });
     } catch (error) {
