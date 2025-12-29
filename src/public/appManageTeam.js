@@ -121,57 +121,44 @@ export async function setManageTeamPage(
             (result?.items || []).forEach((item) => teamMembers.push(item));
         }
         accountsRepeater.data = teamMembers;
+        accountsRepeater.onItemReady(($item, itemData) => {
+            $item('#managerTeam-DisplayAccount-Item-Button').label = `${itemData.firstName} ${itemData.lastName} (${itemData.userId.toUpperCase()})`;
+            $item('#item-Team-CheckBox').checked = false; // Default unchecked
+            $item('#managerTeam-DisplayAccount-Item-Button').onClick(() => {
+                // Populate selected item details
+                if (selectedItemUserIDText) selectedItemUserIDText.text = `User ID: ${itemData.userId.toUpperCase()}`;
+                if (selectedItemFullNameText) selectedItemFullNameText.text = `Full Name: ${itemData.firstName} ${itemData.lastName}`;
+                if (selectedItemEmailText) selectedItemEmailText.text = `Email: ${itemData.loginEmail}`;
+                if (selectedItemStatusButton) selectedItemStatusButton.label = `Status: ${itemData.status || 'Unknown'}`;
+                if (selectedItemDisableButton) {
+                    selectedItemDisableButton.onClick(() => {
+                        // TO BE IMPLEMENTED LATER
+                        console.log('Disable Account button clicked - functionality to be implemented.');
+                    });
+                }
+                // Additional functionality for discard and save buttons to be implemented later
+                if (selectedItemDiscardButton) {
+                    selectedItemDiscardButton.onClick(() => {
+                        // TO BE IMPLEMENTED LATER
+                        console.log('Discard Changes button clicked - functionality to be implemented.');
+                    });
+                }
+                if (selectedItemSaveButton) {
+                    selectedItemSaveButton.onClick(() => {
+                        // TO BE IMPLEMENTED LATER
+                        console.log('Save Changes button clicked - functionality to be implemented.');
+                    });
+                }
+                console.log(`Selected team member: ${itemData.firstName} ${itemData.lastName}`);
+                                
+            });
+        });
     } catch (error) {
         console.error('Error querying team members for Manage Team page:', error);
         accountsRepeater.data = [];
     }
 
-    accountsRepeater.onItemReady(($item, itemData) => {
-        const button = $item(toSelector(accountDisplayItemButton, '#manageTeam-DisplayAccount-Item-Button'));
-        const checkBox = $item(toSelector(accountItemCheckBox, '#item-Team-CheckBox'));
-
-        if (button) {
-            button.label = (itemData.firstName + ' ' + itemData.lastName).trim() + " • " +  (itemData.userId || itemData.userid || 'No User ID');
-        }
-        if (checkBox) {
-            checkBox.checked = false;
-        }
-
-        if (button) {
-            button.onClick(() => {
-                if (selectedItemUserIDText) selectedItemUserIDText.text = `User ID: ${itemData.userId || itemData.userid || '-'}`;
-                if (selectedItemFullNameText) selectedItemFullNameText.text = `Full Name: ${itemData.firstName || ''} ${itemData.lastName || ''}`.trim() || 'Full Name: -';
-                if (selectedItemEmailText) selectedItemEmailText.text = `Email: ${itemData.loginEmail || 'No Email'}`;
-                if (selectedItemStatusButton) selectedItemStatusButton.label = `Status: ${itemData.accountStatus || 'Unknown'}`;
-                if (selectedItemDisableButton) selectedItemDisableButton.label = itemData.status === 'Disabled' ? 'Enable Account' : 'Disable Account';
-                if (selectedItemDisplayWrapper && selectedItemDisplayWrapper.expand) selectedItemDisplayWrapper.expand();
-                if (selectedItemSaveButton && selectedItemSaveButton.enable) selectedItemSaveButton.enable();
-                if (selectedItemDisableButton && selectedItemDisableButton.enable) selectedItemDisableButton.enable();
-                if (selectedItemDiscardButton && selectedItemDiscardButton.enable) selectedItemDiscardButton.enable();
-                if (selectedItemDisableButton) {
-                    selectedItemDisableButton.onClick(() => {
-                        console.log(`Toggle disable for account: ${itemData.userId || itemData.userid || 'No User ID'}`);
-                    });
-                }
-                if (selectedItemDiscardButton) {
-                    selectedItemDiscardButton.onClick(() => {
-                        if (selectedItemDisplayWrapper && selectedItemDisplayWrapper.collapse) selectedItemDisplayWrapper.collapse();
-                        if (selectedItemSaveButton && selectedItemSaveButton.disable) selectedItemSaveButton.disable();
-                        if (selectedItemDisableButton && selectedItemDisableButton.disable) selectedItemDisableButton.disable();
-                    });
-                }
-                if (selectedItemSaveButton) {
-                    selectedItemSaveButton.onClick(() => {
-                        console.log(`Save changes for account: ${itemData.userId || itemData.userid || 'No User ID'}`);
-                        if (selectedItemDisplayWrapper && selectedItemDisplayWrapper.collapse) selectedItemDisplayWrapper.collapse();
-                        if (selectedItemSaveButton.disable) selectedItemSaveButton.disable();
-                        if (selectedItemDisableButton && selectedItemDisableButton.disable) selectedItemDisableButton.disable();
-                        if (selectedItemDiscardButton && selectedItemDiscardButton.disable) selectedItemDiscardButton.disable();
-                    });
-                }
-            });
-        }
-    });
+  
 
 
 }
