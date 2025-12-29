@@ -8,6 +8,7 @@ import { getUserAccountByMemberId } from 'public/UserAccounts-Auth.js';
 import wixLocationFrontend from 'wix-location-frontend';
 import { primaryNavigate } from './appNavigation';
 import { setMyTeamPage } from 'public/appMyTeam.js';
+import { setManageTeamPage } from 'public/appManageTeam.js';
 // THIS FILE WILL CONTAIN ALL FUNCTIONS RELATED TO APP AUTHENTICATION
 // THIS WILL HELP WITH FUNCTIONS INSIDE THE MASTER PAGE AND OTHER PAGES TO CALL THESE FUNCTIONS FROM HERE RATHER THAN REWRITING THE SAME FUNCTION IN MULTIPLE PAGES
 
@@ -90,6 +91,22 @@ export async function loggedInMember(mainLoginButton, quickMenuWrapper, quickMen
                 const ms = getPrimaryMultiState();
                 if (ms) {
                     await primaryNavigate(ms, primary_ManageTeamState);
+                    await setManageTeamPage(
+                        $w('#manageTeam-Close-Button'),
+                        $w('#manageTeam-EditAccounts-Button'),
+                        $w('#manageTeam-NewAccount-Button'),
+                        $w('#manageTeam-Accounts-Repeater'),
+                        $w('#manageTeam-DisplayAccount-Item-Button'),
+                        $w('#manageTeam-AccountItem-CheckBox'),
+                        $w('#manageTeam-SelectedItem-DisplayWrapper'),
+                        $w('#manageTeam-SelectedItem-UserID-Text'),
+                        $w('#manageTeam-SelectedItem-FullName-Text'),
+                        $w('#manageTeam-SelectedItem-Email-Text'),
+                        $w('#manageTeam-SelectedItem-Status-Button'),
+                        $w('#manageTeam-SelectedItem-DisableAccount-Button'),
+                        $w('#manageTeam-SelectedItem-Discard-Button'),
+                        $w('#manageTeam-SelectedItem-Save-Button')
+                    );
                 } else {
                     wixLocationFrontend.to('/home');
                 }
@@ -172,6 +189,22 @@ export async function onMemberLogin(mainLoginButton, quickMenuWrapper, quickMenu
                 const ms = getPrimaryMultiState();
                 if (ms) {
                     await primaryNavigate(ms, primary_ManageTeamState);
+                    await setManageTeamPage(
+                        $w('#manageTeam-Exit-Button'),
+                        $w('#manageTeam-EditAccounts-Button'),
+                        $w('#manageTeam-NewAccount-Button'),
+                        $w('#manageTeam-Accounts-Repeater'),
+                        $w('#manageTeam-DisplayAccount-Item-Button'),
+                        $w('#manageTeam-AccountItem-CheckBox'),
+                        $w('#manageTeam-SelectedItem-DisplayWrapper'),
+                        $w('#manageTeam-SelectedItem-UserID-Text'),
+                        $w('#manageTeam-SelectedItem-FullName-Text'),
+                        $w('#manageTeam-SelectedItem-Email-Text'),
+                        $w('#manageTeam-SelectedItem-Status-Button'),
+                        $w('#manageTeam-SelectedItem-DisableAccount-Button'),
+                        $w('#manageTeam-SelectedItem-Discard-Button'),
+                        $w('#manageTeam-SelectedItem-Save-Button')
+                    );  
                 } else {
                     wixLocationFrontend.to('/home');
                 }

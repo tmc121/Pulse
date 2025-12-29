@@ -10,6 +10,7 @@ import { reportsInNotReceived, reportsNotDelivered, reportsAllInbound ,getInboun
 import { loadUserAccountPageData } from 'public/appMyAccount.js';
 import { showNoAccessState } from 'public/appAuthentication';
 import { setMyTeamPage } from 'public/appMyTeam.js';
+import { setManageTeamPage } from 'public/appManageTeam.js';
 
 // MULTISTATE BOXES
 
@@ -381,6 +382,20 @@ async function setupDashboardManageSection() {
                 switch (itemData.linkState) {
                     case 'manageTeamMain1':
                         await primaryNavigate(primaryMultiState, primary_ManageTeamState);
+                        await setManageTeamPage(
+                            manageTeam_Close_Button,
+                            manageTeam_AccountsRepeater,
+                            manageTeam_Account_Item_CheckBox,
+                            manageTeam_AccountDisplay_Item_Button,
+                            manageTeam_SelectedItem_Display_Wrapper,
+                            manageTeam_SelectedItem_UserID_Text,
+                            manageTeam_SelectedItem_FullName_Text,
+                            manageTeam_SelectedItem_Email_Text,
+                            manageTeam_SelectedItem_Status_Button,
+                            manageTeam_SelectedItem_DisableAccount_Button,
+                            manageTeam_SelectedItem_Discard_Button,
+                            manageTeam_SelectedItem_Save_Button
+                        );
                         break;
                     case 'manageDecisioningMatrixMain1':
                         // Navigate to Decisioning Matrix page (implement as needed)
