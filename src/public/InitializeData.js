@@ -426,9 +426,23 @@ export async function initializeSearchSelected(
         await applySelectedFilters(ref, row);
     });
     
-    // Set up filter options for selected reference filters
+    const ensureOption = (opts, value, label) => {
+        const list = opts || [];
+        const cleanVal = normalizeValue(value);
+        if (!cleanVal) {
+            return list;
+        }
+        const exists = list.some((o) => normalizeValue(o.value) === cleanVal);
+        if (exists) {
+            return list;
+        }
+        return [{ label: label || cleanVal, value: cleanVal }, ...list];
+    };
+
+    // Set up filter options for selected reference filters, preserving the current selected values
     if (filterTypeDropdown && filterTypeDropdown.options !== undefined) {
-        filterTypeDropdown.options = [
+        const current = filterTypeDropdown.value;
+        let typeOptions = [
             { label: '-', value: '' },
             { label: 'USPS', value: 'USPS' },
             { label: 'USPS - FIRST CLASS', value: 'USPS - FIRST CLASS' },
@@ -443,10 +457,16 @@ export async function initializeSearchSelected(
             { label: 'STAPLES', value: 'STAPLES' },
             { label: 'OTHER', value: 'OTHER' },
         ];
+        typeOptions = ensureOption(typeOptions, current, current);
+        filterTypeDropdown.options = typeOptions;
+        if (current) {
+            filterTypeDropdown.value = current;
+        }
     }
 
     if (filterStatusDropdown && filterStatusDropdown.options !== undefined) {
-        filterStatusDropdown.options = [
+        const current = filterStatusDropdown.value;
+        let statusOptions = [
             { label: '-', value: '' },
             { label: 'Inbound Received', value: 'Inbound Received' },
             { label: 'Inbound Department', value: 'Inbound Department' },
@@ -462,12 +482,23 @@ export async function initializeSearchSelected(
             { label: 'Decisioning', value: 'Decisioning' },
             { label: 'Returned Inbound', value: 'Returned Inbound' },
         ];
+        statusOptions = ensureOption(statusOptions, current, current);
+        filterStatusDropdown.options = statusOptions;
+        if (current) {
+            filterStatusDropdown.value = current;
+        }
     }
 
     if (filterByUserDropdown && filterByUserDropdown.options !== undefined) {
-        filterByUserDropdown.options = [
+        const current = filterByUserDropdown.value;
+        let byUserOptions = [
             { label: 'Not available', value: '' },
         ];
+        byUserOptions = ensureOption(byUserOptions, current, current);
+        filterByUserDropdown.options = byUserOptions;
+        if (current) {
+            filterByUserDropdown.value = current;
+        }
     }
     
     await applySelectedFilters();
