@@ -210,7 +210,27 @@ $w.onReady( async function () {
     // Default to dashboard on load without relying on URL query parameters
     await primaryNavigate(primaryMultiState, primary_Dashboard);
     await reportsNavigate(reportsMultiState, report_DashState, reportsLoadingProgressBar);
-  
+    
+    totalInbound_Display.text = await getInboundReceivedOnlyCount() + '';
+
+// SET UP DASHBOARD MANAGEMENT SECTION
+await setupDashboardManageSection();
+// SET UP DASHBOARD ACCOUNT SECTION
+await setupDashboardAccountSection();
+// SET UP DASHBOARD SETTINGS SECTION
+await setupDashboardSettingsSection();
+// LOAD MY ACCOUNT PAGE DATA INTO INPUT FIELDS
+await loadUserAccountPageData(
+    myAccount_FullName_DisplayText,
+    myAccount_Email_DisplayText,
+    myAccount_UserId_DisplayText,
+    myAccount_StatusDisplay_Button,
+    myAccount_Options_Repeater,
+    myAccount_Options_Repeater_Item_Button,
+    myAccount_UpdatePassword_Button,
+    myAccount_Exit_Button,
+    primaryMultiState);
+    
     // SEARCH ON INPUT (debounced to avoid rapid state flips)
     searchInput.onInput(() => {
         if (searchInputDebounce) {
@@ -316,25 +336,6 @@ await setupCreateOrEditReference(createReference_Dataset,
     createReference_ByUser_Input,
     createReference_SubmitButton);
 
-totalInbound_Display.text = await getInboundReceivedOnlyCount() + '';
-
-// SET UP DASHBOARD MANAGEMENT SECTION
-await setupDashboardManageSection();
-// SET UP DASHBOARD ACCOUNT SECTION
-await setupDashboardAccountSection();
-// SET UP DASHBOARD SETTINGS SECTION
-await setupDashboardSettingsSection();
-// LOAD MY ACCOUNT PAGE DATA INTO INPUT FIELDS
-await loadUserAccountPageData(
-    myAccount_FullName_DisplayText,
-    myAccount_Email_DisplayText,
-    myAccount_UserId_DisplayText,
-    myAccount_StatusDisplay_Button,
-    myAccount_Options_Repeater,
-    myAccount_Options_Repeater_Item_Button,
-    myAccount_UpdatePassword_Button,
-    myAccount_Exit_Button,
-    primaryMultiState);
 });
 
 // SET UP DASHBOARD MANAGEMENT SECTION
