@@ -8,6 +8,7 @@ import { primaryNavigate } from 'public/appNavigation.js';
 import { initializeSearch, initializeSearchSelected, setupCreateOrEditReference } from 'public/InitializeData.js';
 import { reportsInNotReceived, reportsNotDelivered, reportsAllInbound ,getInboundReceivedOnlyCount} from 'public/appReports.js';
 import { loadUserAccountPageData } from 'public/appMyAccount.js';
+import { showNoAccessState } from 'public/appAuthentication';
 
 // MULTISTATE BOXES
 
@@ -167,11 +168,7 @@ $w.onReady( async function () {
     // If not logged in, send user to No Access state and prompt login
     const member = await currentMember.getMember();
     if (!member) {
-        noAccess_MainTitle_DisplayText.text = 'Login Required';
-        noAccess_Title_DisplayText.text = 'Please sign in to continue';
-        noAccess_Subtitle_DisplayText.text = 'Access to InComm requires a member login.';
-        noAccess_AdditionalDetails_DisplayText.text = 'Use the SignUp/Login button in the header to authenticate.';
-        await primaryNavigate(primaryMultiState, primary_NoAccessState);
+        await showNoAccessState('Login Required', 'Please sign in to continue', 'Access to InComm requires a member login.', 'Use the SignUp/Login button in the header to authenticate.', primaryMultiState, {});
         return;
     }
   
@@ -306,14 +303,17 @@ await loadUserAccountPageData(
 //Manage Section Repeater Data
 const manageData = [
     {
+        id: 1,
         buttonLabel: 'Manage Team',
         linkState: 'manageTeamMain1'
     },
     {
+        id: 2,
         buttonLabel: 'Decisioning Matrix',
         linkState: 'manageDecisioningMatrixMain1'
     },
-    {
+    {   
+        id: 3,
         buttonLabel: 'Day Reconcil',
         linkState: 'manageDayReconMain1'
     }
@@ -353,11 +353,13 @@ async function setupDashboardManageSection() {
 
 // Account Section Repeater Data
 const accountData = [
-    {
+    {   
+        id: 1,
         buttonLabel: 'My Account',
         linkState: 'myAccountMain1'
     },
-    {
+    {  
+        id: 2,
         buttonLabel: 'My Team',
         linkState: 'teamMain1'
     }
@@ -400,15 +402,18 @@ async function setupDashboardAccountSection() {
 
 // Manage Section Repeater Data
 const settingsData = [
-    {
+    {   
+        id: 1,
         buttonLabel: 'About',
         linkState: 'aboutMain1'
     },
-    {
+    {   
+        id: 2,
         buttonLabel: 'Security Settings',
         linkState: 'securitySettingsMain1'
     },
-    {
+    {   
+        id: 3,
         buttonLabel: 'Help & Support',
         linkState: 'helpMain1'
     }

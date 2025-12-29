@@ -6,6 +6,7 @@
 import { authentication, currentMember } from 'wix-members-frontend';
 import { getUserAccountByMemberId } from 'public/UserAccounts-Auth.js';
 import wixLocationFrontend from 'wix-location-frontend';
+import { primaryNavigate } from './appNavigation';
 
 // THIS FILE WILL CONTAIN ALL FUNCTIONS RELATED TO APP AUTHENTICATION
 // THIS WILL HELP WITH FUNCTIONS INSIDE THE MASTER PAGE AND OTHER PAGES TO CALL THESE FUNCTIONS FROM HERE RATHER THAN REWRITING THE SAME FUNCTION IN MULTIPLE PAGES
@@ -186,3 +187,36 @@ export async function checkUserAccountIsAdmin(memberId) {
         throw error; // Rethrow the error for further handling if needed
     }
 }   
+
+// SHOW NO ACCESS STATE ANYTIME
+export async function showNoAccessState(primaryMultiState,
+    noAccessMainTitle,
+    noAccessTitle,
+    noAccessSubtitle,
+    noAccessDetails,
+    opts = {}) {
+    try {
+        const mainTitleText = opts.mainTitleText || 'Login Required';
+        const titleText = opts.titleText || 'Please sign in to continue';
+        const subtitleText = opts.subtitleText || 'Access to this area requires a member login.';
+        const detailsText = opts.detailsText || 'Use the SignUp/Login button in the header to authenticate.';
+
+        if (noAccessMainTitle && 'text' in noAccessMainTitle) {
+            noAccessMainTitle.text = mainTitleText;
+        }
+        if (noAccessTitle && 'text' in noAccessTitle) {
+            noAccessTitle.text = titleText;
+        }
+        if (noAccessSubtitle && 'text' in noAccessSubtitle) {
+            noAccessSubtitle.text = subtitleText;
+        }
+        if (noAccessDetails && 'text' in noAccessDetails) {
+            noAccessDetails.text = detailsText;
+        }
+
+        await primaryNavigate(primaryMultiState, 'noAccessStateMain1');
+    } catch (error) {
+        console.error('Error showing No Access state:', error);
+        throw error;
+    }
+}
