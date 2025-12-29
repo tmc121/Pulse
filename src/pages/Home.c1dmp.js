@@ -63,6 +63,14 @@ const selectedReferenced_Filter_Status_Dropdown = $w('#referencePath-Filter-Refe
 const selectedReferenced_Filter_ByUser_Dropdown = $w('#referencePath-Filter-ReferencedByUser-Dropdown');
 
 
+// Wait for all datasets to be ready before wiring handlers that depend on them
+async function waitForDatasetsReady(datasets, timeoutMs = 8000) {
+    const readyPromises = (datasets || []).filter(Boolean).map((dataset) => dataset.onReady());
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Datasets not ready before timeout')), timeoutMs));
+    await Promise.race([Promise.all(readyPromises), timeout]);
+}
+
+
 
 // CREATE REFERENCE
 const createReference_Dataset = $w('#createDataset');
@@ -186,6 +194,17 @@ $w.onReady( async function () {
             }
         );
         return;
+    }
+
+    try {
+        await waitForDatasetsReady([
+            search_Dataset,
+            selectedReferenced_Dataset,
+            createReference_Dataset,
+            reports_ResultsDataset
+        ], 8000);
+    } catch (err) {
+        console.warn('Dataset readiness timed out', err);
     }
 
     // Default to dashboard on load without relying on URL query parameters
