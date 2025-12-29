@@ -14,26 +14,24 @@ import wixData from 'wix-data';
 
 // Change this function to use connectedMemberId
 export async function getUserAccountByMemberId(memberId){
-    console.warn('getUserAccountByMemberId stub: user account logic reset.');
+    const cleanId = memberId || '';
+    if (!cleanId) {
+        return { activeAccount: false, account: null };
+    }
+
     try {
-        wixData.query('UserAccounts')
-        .eq('connectedMemberId', memberId)
-        .find( { suppressAuth: true, suppressHooks: true } )
-        .then( (results) => {
-            if(results.items.length > 0 ){
-                return {activeAccount:true, account: results.items[0]}    ;
-            } else {
-                return {activeAccount:false, account: null}    ;
-            }
-        } )
-        .catch( (err) => {
-            console.error('Error querying UserAccounts by connectedMemberId:', err);
-            return null;
-        } );
+        const results = await wixData
+            .query('UserAccounts')
+            .eq('connectedMemberId', cleanId)
+            .limit(1)
+            .find({ suppressAuth: true, suppressHooks: true });
+
+        const account = results.items?.[0] || null;
+        return { activeAccount: !!account, account };
     } catch (error) {
-        console.error('Error in getUserAccountByMemberId:', error);
-        return null;
-    }       
+        console.error('Error querying UserAccounts by connectedMemberId:', error);
+        return { activeAccount: false, account: null };
+    }
 }
 
 

@@ -183,6 +183,15 @@ $w.onReady( async function () {
         );
         return;
     }
+
+    // Respect URL state overrides and default to dashboard after login/fresh login
+    const query = wixLocationFrontend.query || {};
+    const requestedState = typeof query.state === 'string' && query.state.trim()
+        ? query.state.trim()
+        : null;
+    const isFreshLogin = query.freshLogin === 'true' || query.freshLogin === true;
+    const initialState = isFreshLogin ? primary_Dashboard : (requestedState || primary_Dashboard);
+    await primaryNavigate(primaryMultiState, initialState);
   
     // SEARCH ON INPUT (debounced to avoid rapid state flips)
     searchInput.onInput(() => {
