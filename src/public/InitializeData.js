@@ -337,8 +337,36 @@ export async function initializeSearchSelected(
     filterStatusDropdown,
     filterByUserDropdown
 ) {
+    const setDropdownValueAndDisable = (dropdown, value, fallbackLabel = '') => {
+        if (!dropdown || dropdown.options === undefined) {
+            return;
+        }
+        const cleanValue = normalizeValue(value);
+        const options = dropdown.options || [];
+        if (cleanValue && !options.some((opt) => opt.value === cleanValue)) {
+            dropdown.options = [{ label: cleanValue || fallbackLabel || 'Not available', value: cleanValue }, ...options];
+        }
+        dropdown.value = cleanValue;
+        if (typeof dropdown.disable === 'function') {
+            dropdown.disable();
+        }
+    };
+
+    const syncFiltersFromItem = (item) => {
+        if (!item) {
+            return;
+        }
+        setDropdownValueAndDisable(filterTypeDropdown, item.referenceType, '');
+        setDropdownValueAndDisable(filterStatusDropdown, item.status, '');
+        setDropdownValueAndDisable(filterByUserDropdown, item.addedByUser, item.addedByUser || 'Not available');
+    };
+
     const applySelectedFilters = async () => {
         const referenceNumber = currentReferenceNumber(selectedDataset);
+        const currentItem = selectedDataset && typeof selectedDataset.getCurrentItem === 'function'
+            ? selectedDataset.getCurrentItem()
+            : null;
+        syncFiltersFromItem(currentItem);
         await applyFilter(
             selectedDataset,
             buildFilter({
@@ -357,12 +385,14 @@ export async function initializeSearchSelected(
 
     
 
-    bindOnRowSelectOnce(selectedReferenceTable, (event) => {
+    bindOnRowSelectOnce(selectedReferenceTable, async (event) => {
         const row = event?.rowData || {};
         const ref = normalizeValue(
             row.referenceNumber || row.referenceNumberDisplay || row.reference
         );
         updateReferenceDisplay(selectedReferenceDisplay, ref);
+        syncFiltersFromItem(row);
+        await applySelectedFilters();
     });
     
     // Set up filter options for selected reference filters
@@ -410,6 +440,24 @@ export async function initializeSearchSelected(
     }
     
     await applySelectedFilters();
+
+    // COPY THE TEXT OF THE SELECTED REFERENCE TO THE CLIPBOARD WHEN CLICKED
+    // IF THERE IS A VALID REFERENCE NUMBER
+    selectedReferenceDisplay.onClick(async () => {
+        const refText = selectedReferenceDisplay?.text || '';
+        const match = refText.match(/Reference:\s*(.*)/);
+        const refNumber = match ? match[1] : '';
+        if (refNumber) {
+            try {
+                await navigator.clipboard.writeText(refNumber);
+                console.log(`Copied reference number to clipboard: ${refNumber}`);
+            } catch (error) {
+                console.error('Failed to copy reference number to clipboard:', error);
+            }
+        }
+    });
+
+    
 }
 
 
