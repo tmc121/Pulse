@@ -535,6 +535,19 @@ export async function setupCreateOrEditReference(
     addedByUserInput,
     submitButton
 ) {
+    if (!createDataset || typeof createDataset.setFieldValue !== 'function') {
+        console.warn('Create reference dataset missing; skipping setup');
+        return;
+    }
+
+    if (createDataset.onReady && typeof createDataset.onReady === 'function') {
+        try {
+            await createDataset.onReady();
+        } catch (error) {
+            console.warn('Create reference dataset failed to become ready', error);
+        }
+    }
+
     // Set up filter options for create reference form first
     if (referenceTypeInput && referenceTypeInput.options !== undefined) {
         referenceTypeInput.options = [
@@ -636,8 +649,15 @@ export async function setupCreateOrEditReference(
     };
 
     const setupNewEntry = async (refNumber) => {
-        await createDataset.clear();
-        await createDataset.new();
+        if (typeof createDataset.setFilter === 'function') {
+            await createDataset.setFilter(wixData.filter());
+        }
+        if (typeof createDataset.refresh === 'function') {
+            await createDataset.refresh();
+        }
+        if (typeof createDataset.new === 'function') {
+            await createDataset.new();
+        }
         if (refNumber) {
             await createDataset.setFieldValue('referenceNumber', refNumber);
         }
@@ -703,62 +723,70 @@ export async function setupCreateOrEditReference(
     }
 
     //SET UP TYPE FILTER DROPDOWN
-    referenceTypeInput.onChange( async () => {
-        const typeValue = referenceTypeInput.value;
-        if (typeValue) {
-            await createDataset.setFieldValue('referenceType', typeValue);
-        }
-    });
+    if (referenceTypeInput && typeof referenceTypeInput.onChange === 'function') {
+        referenceTypeInput.onChange(async () => {
+            const typeValue = referenceTypeInput.value;
+            if (typeValue) {
+                await createDataset.setFieldValue('referenceType', typeValue);
+            }
+        });
+    }
 
     //SET UP STATUS FILTER DROPDOWN
-    statusInput.onChange( async () => {
-        const statusValue = statusInput.value;
-        if (statusValue) {
-            await createDataset.setFieldValue('status', statusValue);
-        }
-    });
+    if (statusInput && typeof statusInput.onChange === 'function') {
+        statusInput.onChange(async () => {
+            const statusValue = statusInput.value;
+            if (statusValue) {
+                await createDataset.setFieldValue('status', statusValue);
+            }
+        });
+    }
 
     //SET UP ADDED BY USER FILTER DROPDOWN
     //WILL GET THE OF THE CURRENT USER LOGGED IN AND SET IT AS THE ADDED BY USER VALUE
     //EXAMPLE: ABC123 
-    addedByUserInput.onChange( async () => {
-        const byUserValue = addedByUserInput.value;
-        if (byUserValue) {
-            await createDataset.setFieldValue('addedByUser', byUserValue);
-        }
-    });
+    if (addedByUserInput && typeof addedByUserInput.onChange === 'function') {
+        addedByUserInput.onChange(async () => {
+            const byUserValue = addedByUserInput.value;
+            if (byUserValue) {
+                await createDataset.setFieldValue('addedByUser', byUserValue);
+            }
+        });
+    }
 
     //SET UP SUBMIT BUTTON FUNCTIONALITY
-    submitButton.onClick( async () => {
-        // Ensure all required fields are set in the dataset before saving
-        const refNumber = referenceNumberInput?.value?.toString().trim() || '';
-        const typeValue = referenceTypeInput?.value || '';
-        const statusValue = statusInput?.value || '';
-        const addedByUserValue = addedByUserInput?.value || '';
-        const currentDate = new Date();
-        
-        if (refNumber) {
-            await createDataset.setFieldValue('referenceNumber', refNumber);
-        }
-        
-        if (typeValue) {
-            await createDataset.setFieldValue('referenceType', typeValue);
-        }
-        
-        if (statusValue) {
-            await createDataset.setFieldValue('status', statusValue);
-        }
+    if (submitButton && typeof submitButton.onClick === 'function') {
+        submitButton.onClick(async () => {
+            // Ensure all required fields are set in the dataset before saving
+            const refNumber = referenceNumberInput?.value?.toString().trim() || '';
+            const typeValue = referenceTypeInput?.value || '';
+            const statusValue = statusInput?.value || '';
+            const addedByUserValue = addedByUserInput?.value || '';
+            const currentDate = new Date();
+            
+            if (refNumber) {
+                await createDataset.setFieldValue('referenceNumber', refNumber);
+            }
+            
+            if (typeValue) {
+                await createDataset.setFieldValue('referenceType', typeValue);
+            }
+            
+            if (statusValue) {
+                await createDataset.setFieldValue('status', statusValue);
+            }
 
-        if (addedByUserValue) {
-            await createDataset.setFieldValue('addedByUser', addedByUserValue);
-        }
-        
-        // Set update date to current timestamp
-        await createDataset.setFieldValue('updateDate', currentDate);
-        
-        await createDataset.save();
-        // Optionally, you can add code here to navigate away or show a success message 
-    });
+            if (addedByUserValue) {
+                await createDataset.setFieldValue('addedByUser', addedByUserValue);
+            }
+            
+            // Set update date to current timestamp
+            await createDataset.setFieldValue('updateDate', currentDate);
+            
+            await createDataset.save();
+            // Optionally, you can add code here to navigate away or show a success message 
+        });
+    }
 }
 
 // END OF FILE src/public/InitializeData.js

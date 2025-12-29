@@ -32,6 +32,10 @@ import wixLocationFrontend from 'wix-location-frontend';
 
 // THIS FUNCTION WILL NAVIGATE THE PRIMARY MULTISTATE BOX TO THE DESIRED STATE
 export async function primaryNavigate(multistateBox, state) {
+    if (!multistateBox || typeof multistateBox.changeState !== 'function') {
+        console.warn('primaryNavigate missing multistateBox');
+        return;
+    }
     await multistateBox.changeState('loadingMain1'); // Optional: Show loading state before changing to the desired state
     setTimeout(async () => {
         await multistateBox.changeState(state);
@@ -40,17 +44,27 @@ export async function primaryNavigate(multistateBox, state) {
 
 // THIS FUNCTION WILL NAVIGATE THE REPORTS MULTISTATE BOX TO THE DESIRED STATE
 export async function reportsNavigate(multistateBox, state, reportsLoadingProgressBar) {
+    if (!multistateBox || typeof multistateBox.changeState !== 'function') {
+        console.warn('reportsNavigate missing multistateBox');
+        return;
+    }
     await multistateBox.changeState('reportsLoading'); // Optional: Show loading state before changing to the desired state
     setTimeout(async () => {
         await multistateBox.changeState(state);
+        if (!reportsLoadingProgressBar || typeof reportsLoadingProgressBar.value !== 'number') {
+            return;
+        }
         // Capture the interval ID
-    const intervalId = setInterval(() => {
-        // Increment safely without exceeding 100
-        reportsLoadingProgressBar.value = Math.min(
-            reportsLoadingProgressBar.value + 20,
-            100
-        );
-    }, 200);
+        const intervalId = setInterval(() => {
+            // Increment safely without exceeding 100
+            reportsLoadingProgressBar.value = Math.min(
+                (reportsLoadingProgressBar.value || 0) + 20,
+                100
+            );
+            if (reportsLoadingProgressBar.value >= 100) {
+                clearInterval(intervalId);
+            }
+        }, 200);
     }, 1000); // Adjust the delay time (in milliseconds) as needed  
  
 }
