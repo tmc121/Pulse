@@ -155,7 +155,7 @@ export async function onMemberLogin(mainLoginButton, quickMenuWrapper, quickMenu
                 quickMenuWrapper.collapse();
                 const ms = getPrimaryMultiState();
                 if (ms) {
-                    await primaryNavigate(ms, primary_Dashboard);
+                    await primaryNavigate(ms, primary_ManageTeamState);
                 } else {
                     wixLocationFrontend.to('/home');
                 }
