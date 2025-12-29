@@ -179,7 +179,25 @@ const mainMenu_CreateReference_Button = $w('#mainMenu-Button-CreateReference');
 
 // URL-based state overrides removed to avoid navigation side effects
 
+// If a user logs in while already on Home, force a reload so initialization reruns.
+let homeLoginRefreshBound = false;
+function bindHomeLoginRefresh() {
+    if (homeLoginRefreshBound) {
+        return;
+    }
+    homeLoginRefreshBound = true;
+    authentication.onLogin(() => {
+        try {
+            wixLocationFrontend.to('/home');
+        } catch (err) {
+            console.error('Failed to reload Home after login', err);
+        }
+    });
+}
+
 $w.onReady( async function () {
+    // Ensure we refresh Home once after a successful login (covers promptLogin flows)
+    bindHomeLoginRefresh();
     // If not logged in, send user to No Access state and prompt login
     const member = await currentMember.getMember();
     if (!member) {

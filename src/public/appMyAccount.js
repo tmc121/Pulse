@@ -35,17 +35,30 @@ export async function loadUserAccountPageData(
     myAccountExitButton,
     primaryMultiState) {
 
-    // Minimal placeholder while rebuilding account integration
     try {
         const member = await currentMember.getMember();
-        const UserAccount = await getUserAccountByMemberId(member._id);
-        const fallbackName = UserAccount.account.firstName + ' ' + UserAccount.account.lastName || 'Member';
-        
-        if (myAccountFullName) myAccountFullName.text = fallbackName;
-        if (myAccountEmail) myAccountEmail.text = UserAccount.account.loginEmail || 'No Email';
-        if (myAccountUserId) myAccountUserId.text = UserAccount.account.userId.toUpperCase() || 'Error Retrieving';
-        if (myAccountStatus) myAccountStatus.label = UserAccount.account.accountStatus || 'Error Retrieving';
-        
+        if (!member?._id) {
+            await showNoAccessState($w('#multiStateBox1'), 'Login Required', 'Please sign in to continue.', 'Access to My Account requires a member login.', 'Use the SignUp/Login button in the header to authenticate.');
+            return;
+        }
+
+        const accountResult = await getUserAccountByMemberId(member._id);
+        const account = accountResult?.account || null;
+
+        if (!account) {
+            if (myAccountFullName) myAccountFullName.text = 'Member';
+            if (myAccountEmail) myAccountEmail.text = 'No Email';
+            if (myAccountUserId) myAccountUserId.text = 'Unavailable';
+            if (myAccountStatus) myAccountStatus.label = 'Unavailable';
+            console.warn('My Account: no linked user account found for member');
+        } else {
+            const fallbackName = `${account.firstName || 'Member'} ${account.lastName || ''}`.trim() || 'Member';
+            if (myAccountFullName) myAccountFullName.text = fallbackName;
+            if (myAccountEmail) myAccountEmail.text = account.loginEmail || account.email || 'No Email';
+            if (myAccountUserId) myAccountUserId.text = (account.userId || account.userid || '').toString().toUpperCase() || 'Unavailable';
+            if (myAccountStatus) myAccountStatus.label = account.accountStatus || account.status || 'Unavailable';
+        }
+
         // Setup exit button to navigate back to dashboard
         if (myAccountExitButton) {
             myAccountExitButton.onClick(async () => {
@@ -53,13 +66,13 @@ export async function loadUserAccountPageData(
                     await primaryNavigate($w('#multiStateBox1'), 'dashboard');
                 } catch (err) {
                     console.error('Failed to navigate from My Account exit', err);
-                    await showNoAccessState($w('#multiStateBox1'),'Error', 'An error occurred while navigating back to the dashboard.', "Contact Support for further assistance", "Click another option to exit this page.");
+                    await showNoAccessState($w('#multiStateBox1'), 'Error', 'An error occurred while navigating back to the dashboard.', 'Contact Support for further assistance', 'Click another option to exit this page.');
                 }
             });
         }
     } catch (error) {
         console.error('Error loading user account data:', error);
-        await showNoAccessState($w('#multiStateBox1'),'Error', 'An error occurred while loading your account data.', "Contact Support for further assistance", "Click another option to exit this page.");
+        await showNoAccessState($w('#multiStateBox1'), 'Error', 'An error occurred while loading your account data.', 'Contact Support for further assistance', 'Click another option to exit this page.');
     }
 
     // SET UP ACCOUT OPTIONS REPEATER - TO BE IMPLEMENTED LATER
@@ -89,17 +102,18 @@ export async function loadUserAccountPageData(
 
     // UPDATE PASSWORD BUTTON HANDLER
     // THIS MULTISTATE IS NOT YET IMPLEMENTED - PLACEHOLDER FOR FUTURE - REDIRECT TO DASHBOARD FOR NOW
-    updatePasswordButton.onClick(async () => {
-        try {
-            await primaryNavigate($w('#multiStateBox1'), 'dashboard') // Change to 'changePassword' when implemented
-            .then(async () => {
-            await showNoAccessState($w('#multiStateBox1'),'No Yet Ready', 'Change Password functionality is not yet implemented.', "Contact Support for further assistance", "Click another option to exit this page.");
-            });
-        } catch (err) {
-            console.error('Failed to navigate to Change Password', err);
-            await showNoAccessState($w('#multiStateBox1'),'Error', 'An error occurred while trying to access Change Password.', "Contact Support for further assistance", "Click another option to exit this page.");
-        }
-    });
+    if (updatePasswordButton) {
+        updatePasswordButton.onClick(async () => {
+            try {
+                await primaryNavigate($w('#multiStateBox1'), 'dashboard').then(async () => {
+                    await showNoAccessState($w('#multiStateBox1'), 'No Yet Ready', 'Change Password functionality is not yet implemented.', 'Contact Support for further assistance', 'Click another option to exit this page.');
+                });
+            } catch (err) {
+                console.error('Failed to navigate to Change Password', err);
+                await showNoAccessState($w('#multiStateBox1'), 'Error', 'An error occurred while trying to access Change Password.', 'Contact Support for further assistance', 'Click another option to exit this page.');
+            }
+        });
+    }
 
 }   
 // END OF FILE  
