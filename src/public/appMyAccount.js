@@ -39,41 +39,45 @@ export async function loadUserAccountPageData(
         const member = await currentMember.getMember();
         const UserAccount = await getUserAccountByMemberId(member._id);
         const fallbackName = UserAccount.account.firstName + ' ' + UserAccount.account.lastName || 'Member';
-        if (myAccountFullName && 'text' in myAccountFullName) {
-            myAccountFullName.text = fallbackName;
-        }
-        if (myAccountEmail && 'text' in myAccountEmail) {
-            myAccountEmail.text = UserAccount.account.loginEmail || 'Email unavailable';
-        }
-        if (myAccountUserId && 'text' in myAccountUserId) {
-            myAccountUserId.text = UserAccount.account.userId || 'ID unavailable';
-        }
-        if (myAccountStatus && 'label' in myAccountStatus) {
-            myAccountStatus.label = UserAccount.account.status || 'Status unavailable';
-        }
-        if (myAccountOptionsRepeater) {
-            myAccountOptionsRepeater.data = [];
-            const buttonSelector = typeof myAccountOptionsRepeaterItemButton === 'string'
-                ? myAccountOptionsRepeaterItemButton
-                : myAccountOptionsRepeaterItemButton?.id
-                    ? `#${myAccountOptionsRepeaterItemButton.id}`
-                    : null;
-            if (buttonSelector) {
-                myAccountOptionsRepeater.onItemReady(($item) => {
-                    $item(buttonSelector).label = 'Team Admin: (none)';
-                });
-            }
-        }
-        if (updatePasswordButton && typeof updatePasswordButton.enable === 'function') {
-            updatePasswordButton.enable();
+        
+        if (myAccountFullName) myAccountFullName.text = fallbackName;
+        if (myAccountEmail) myAccountEmail.text = UserAccount.account.loginEmail || 'No Email';
+        if (myAccountUserId) myAccountUserId.text = UserAccount.account.userId.toUpperCase() || 'Error Retrieving';
+        if (myAccountStatus) myAccountStatus.label = UserAccount.account.status || 'Error Retrieving';
+        
+        // Setup exit button to navigate back to dashboard
+        if (myAccountExitButton) {
+            myAccountExitButton.onClick(async () => {
+                try {
+                    await primaryNavigate($w('#multiStateBox1'), 'dashboard');
+                } catch (err) {
+                    console.error('Failed to navigate from My Account exit', err);
+                }
+            });
         }
     } catch (error) {
-        console.error('My Account placeholder load error:', error);
+        console.error('Error loading user account data:', error);
     }
 
-    if (myAccountExitButton && typeof myAccountExitButton.onClick === 'function') {
-        myAccountExitButton.onClick(async () => {
-            await primaryNavigate(primaryMultiState, 'dashboard');
+    // SET UP ACCOUT OPTIONS REPEATER - TO BE IMPLEMENTED LATER
+    repeaterData = [
+        { _id: "01", label: "Update account info", primaryMultiStateLink: 'dashboard' },
+        { _id: "02", label: "Change Password", primaryMultiStateLink: 'dashboard' },
+        { _id: "03", label: "Preferences", primaryMultiStateLink: 'dashboard' },
+        // Add more options as needed
+    ];
+    if (myAccountOptionsRepeater) {
+        myAccountOptionsRepeater.data = repeaterData;
+        myAccountOptionsRepeater.onItemReady( (item, itemData, index) => {
+            const optionButton = item.$w('#myAccount-Options-Repeater-Item-Button');
+            if (optionButton) {
+                optionButton.label = itemData.label;
+                optionButton.onClick( async () => {
+                    console.log(`Option selected: ${itemData.label}`);
+                    // Implement option functionality here
+                    await primaryNavigate($w('#multiStateBox1'), itemData.primaryMultiStateLink); // Placeholder navigation
+                });
+            }
         });
-    }
+    }   
 }   
