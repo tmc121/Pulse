@@ -184,6 +184,7 @@ async function sortDatasetByNewest(dataset) {
 }
 
 function ensureReportsDropdownHandler(ctx) {
+    // Always update the shared context so the bound handler uses fresh datasets/controls
     reportsDropdownCtx = ctx;
     if (reportsDropdownBound) {
         return;
@@ -191,35 +192,36 @@ function ensureReportsDropdownHandler(ctx) {
     reportsDropdownBound = true;
     ctx.reportsInMenuDropdown.onChange(async (event) => {
         const selectedValue = event.target.value;
+        const c = reportsDropdownCtx || ctx;
         if (selectedValue === 'inNotReceived') {
             await reportsInNotReceived(
-                ctx.reportsDataset,
-                ctx.reportsTable,
-                ctx.reportsFilterSearch_Input,
-                ctx.reportsInMenuDropdown,
-                ctx.primaryMultiState,
-                ctx.reportsMultiState,
-                ctx.reportsLoadingProgressBar
+                c.reportsDataset,
+                c.reportsTable,
+                c.reportsFilterSearch_Input,
+                c.reportsInMenuDropdown,
+                c.primaryMultiState,
+                c.reportsMultiState,
+                c.reportsLoadingProgressBar
             );
         } else if (selectedValue === 'notDelivered') {
             await reportsNotDelivered(
-                ctx.reportsDataset,
-                ctx.reportsTable,
-                ctx.reportsFilterSearch_Input,
-                ctx.reportsInMenuDropdown,
-                ctx.primaryMultiState,
-                ctx.reportsMultiState,
-                ctx.reportsLoadingProgressBar
+                c.reportsDataset,
+                c.reportsTable,
+                c.reportsFilterSearch_Input,
+                c.reportsInMenuDropdown,
+                c.primaryMultiState,
+                c.reportsMultiState,
+                c.reportsLoadingProgressBar
             );
         } else if (selectedValue === 'allInbound') {
             await reportsAllInbound(
-                ctx.reportsDataset,
-                ctx.reportsTable,
-                ctx.reportsFilterSearch_Input,
-                ctx.reportsInMenuDropdown,
-                ctx.primaryMultiState,
-                ctx.reportsMultiState,
-                ctx.reportsLoadingProgressBar
+                c.reportsDataset,
+                c.reportsTable,
+                c.reportsFilterSearch_Input,
+                c.reportsInMenuDropdown,
+                c.primaryMultiState,
+                c.reportsMultiState,
+                c.reportsLoadingProgressBar
             );
         }
     });
