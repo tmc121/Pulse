@@ -2,6 +2,7 @@
 // Search and selection helpers used by Home.c1dmp.js
 
 import wixData from 'wix-data';
+import { currentMember } from 'wix-members-frontend';
 
 function normalizeValue(value) {
     return typeof value === 'string' ? value.trim() : value || '';
@@ -117,6 +118,37 @@ async function getUserOptionByUserId(userId) {
     }
 
     return { label: cleanId, value: cleanId };
+}
+
+async function getCurrentUserAccountOption() {
+    try {
+        const member = await currentMember.getMember();
+        const memberId = member?._id;
+        if (!memberId) {
+            return null;
+        }
+
+        const result = await wixData
+            .query('UserAccounts')
+            .eq('connectedMemberId', memberId)
+            .find({ suppressAuth: true, suppressHooks: true });
+
+        const account = result.items && result.items[0];
+        if (!account) {
+            return null;
+        }
+
+        const label = `${normalizeValue(account.firstName)} ${normalizeValue(account.lastName)}`.trim() || account.userId || 'Account';
+        const value = account.userId || '';
+        if (!value) {
+            return null;
+        }
+
+        return { label, value };
+    } catch (error) {
+        console.error('Error fetching current user account option:', error);
+        return null;
+    }
 }
 
 export async function initializeSearch(
@@ -351,6 +383,94 @@ export async function setupCreateOrEditReference(
         ];
     }
 
+    const populateFromExisting = async (refNumber) => {
+        // Query DemoData for the latest matching reference entry
+        const query = await wixData
+            .query('DemoData')
+            .eq('referenceNumber', refNumber)
+            .descending('updateDate')
+            .descending('_updatedDate')
+            .descending('_createdDate')
+            .limit(1)
+            .find({ suppressAuth: true, suppressHooks: true });
+
+        const latest = query.items && query.items[0];
+        if (!latest) {
+            return false;
+        }
+
+        await createDataset.setFilter(wixData.filter().eq('_id', latest._id));
+        await createDataset.refresh();
+        await createDataset.setCurrentItemIndex(0);
+
+        const currentItem = createDataset.getCurrentItem();
+
+        if (referenceTypeInput) {
+            referenceTypeInput.value = currentItem?.referenceType || '';
+            if (referenceTypeInput.disable) {
+                referenceTypeInput.disable();
+            }
+        }
+
+        if (statusInput) {
+            statusInput.value = currentItem?.status || '';
+            if (statusInput.enable) {
+                statusInput.enable();
+            }
+        }
+
+        if (addedByUserInput) {
+            const userOption = await getUserOptionByUserId(currentItem?.addedByUser);
+            if (userOption) {
+                addedByUserInput.options = [userOption];
+                addedByUserInput.value = userOption.value;
+            } else {
+                addedByUserInput.options = [{ label: 'Not available', value: '' }];
+                addedByUserInput.value = '';
+            }
+            if (addedByUserInput.enable) {
+                addedByUserInput.enable();
+            }
+        }
+
+        return true;
+    };
+
+    const setupNewEntry = async (refNumber) => {
+        await createDataset.clear();
+        await createDataset.new();
+        if (refNumber) {
+            await createDataset.setFieldValue('referenceNumber', refNumber);
+        }
+
+        if (referenceTypeInput) {
+            referenceTypeInput.value = '';
+            if (referenceTypeInput.enable) {
+                referenceTypeInput.enable();
+            }
+        }
+        if (statusInput) {
+            statusInput.value = '';
+            if (statusInput.enable) {
+                statusInput.enable();
+            }
+        }
+
+        if (addedByUserInput) {
+            const currentUserOption = await getCurrentUserAccountOption();
+            if (currentUserOption) {
+                addedByUserInput.options = [currentUserOption];
+                addedByUserInput.value = currentUserOption.value;
+            } else {
+                addedByUserInput.options = [{ label: 'Not available', value: '' }];
+                addedByUserInput.value = '';
+            }
+            if (addedByUserInput.enable) {
+                addedByUserInput.enable();
+            }
+        }
+    };
+
     // Set up reference number input handler to load existing data when reference number is entered
     // Use direct onChange to ensure it always works
     if (referenceNumberInput && typeof referenceNumberInput.onInput === 'function') {
@@ -359,99 +479,12 @@ export async function setupCreateOrEditReference(
                 const refNumber = referenceNumberInput?.value?.toString().trim() || '';
 
                 if (refNumber) {
-                    // EDIT EXISTING REFERENCE - check if reference exists
-                    await createDataset.setFilter(
-                        wixData.filter().eq('referenceNumber', refNumber)
-                    );
-                    await createDataset.refresh();
-
-                    if (createDataset.getTotalCount() > 0) {
-                        // Reference exists - populate fields for editing
-                        await createDataset.setCurrentItemIndex(0);
-                        const currentItem = createDataset.getCurrentItem();
-
-                        if (currentItem) {
-                            // Populate the form fields with existing data
-                            if (referenceTypeInput) {
-                                referenceTypeInput.value = currentItem.referenceType || '';
-                                if (referenceTypeInput.disable) {
-                                    referenceTypeInput.disable();
-                                }
-                            }
-
-                            if (statusInput) {
-                                statusInput.value = currentItem.status || '';
-                                if (statusInput.enable) {
-                                    statusInput.enable();
-                                }
-                            }
-
-                            if (addedByUserInput) {
-                                const userOption = await getUserOptionByUserId(currentItem.addedByUser);
-                                if (userOption) {
-                                    addedByUserInput.options = [userOption];
-                                    addedByUserInput.value = userOption.value;
-                                } else {
-                                    addedByUserInput.options = [{ label: 'Not available', value: '' }];
-                                    addedByUserInput.value = '';
-                                }
-                                if (addedByUserInput.enable) {
-                                    addedByUserInput.enable();
-                                }
-                            }
-                        }
-                    } else {
-                        // Reference doesn't exist - set up for new entry
-                        await createDataset.clear();
-                        await createDataset.new();
-                        await createDataset.setFieldValue('referenceNumber', refNumber);
-
-                        // Clear form fields and enable type/status/user inputs for new entry
-                        if (referenceTypeInput) {
-                            referenceTypeInput.value = '';
-                            if (referenceTypeInput.enable) {
-                                referenceTypeInput.enable();
-                            }
-                        }
-                        if (statusInput) {
-                            statusInput.value = '';
-                            if (statusInput.enable) {
-                                statusInput.enable();
-                            }
-                        }
-                        if (addedByUserInput) {
-                            addedByUserInput.options = [{ label: 'Not available', value: '' }];
-                            addedByUserInput.value = '';
-                            if (addedByUserInput.enable) {
-                                addedByUserInput.enable();
-                            }
-                        }
+                    const found = await populateFromExisting(refNumber);
+                    if (!found) {
+                        await setupNewEntry(refNumber);
                     }
                 } else {
-                    // No reference number - set up for new entry
-                    await createDataset.clear();
-                    await createDataset.new();
-
-                    // Clear form fields and enable type/status/user inputs
-                    if (referenceTypeInput) {
-                        referenceTypeInput.value = '';
-                        if (referenceTypeInput.enable) {
-                            referenceTypeInput.enable();
-                        }
-                    }
-                    if (statusInput) {
-                        statusInput.value = '';
-                        if (statusInput.enable) {
-                            statusInput.enable();
-                        }
-                    }
-                    if (addedByUserInput) {
-                        addedByUserInput.options = [{ label: 'Not available', value: '' }];
-                        addedByUserInput.value = '';
-                        if (addedByUserInput.enable) {
-                            addedByUserInput.enable();
-                        }
-                    }
+                    await setupNewEntry('');
                 }
             } catch (error) {
                 console.error('Error in reference number onChange:', error);
@@ -462,77 +495,12 @@ export async function setupCreateOrEditReference(
     // Initial setup - check if there's already a reference number
     const initialRefNumber = referenceNumberInput?.value?.toString().trim() || '';
     if (initialRefNumber) {
-        try {
-            await createDataset.setFilter(
-                wixData.filter().eq('referenceNumber', initialRefNumber)
-            );
-            await createDataset.refresh();
-            
-            if (createDataset.getTotalCount() > 0) {
-                await createDataset.setCurrentItemIndex(0);
-                const currentItem = createDataset.getCurrentItem();
-                
-                if (currentItem) {
-                    if (referenceTypeInput) {
-                        referenceTypeInput.value = currentItem.referenceType || '';
-                        if (referenceTypeInput.disable) {
-                            referenceTypeInput.disable();
-                        }
-                    }
-                    if (statusInput) {
-                        statusInput.value = currentItem.status || '';
-                        if (statusInput.enable) {
-                            statusInput.enable();
-                        }
-                    }
-                    if (addedByUserInput) {
-                        const userOption = await getUserOptionByUserId(currentItem.addedByUser);
-                        if (userOption) {
-                            addedByUserInput.options = [userOption];
-                            addedByUserInput.value = userOption.value;
-                        } else {
-                            addedByUserInput.options = [{ label: 'Not available', value: '' }];
-                            addedByUserInput.value = '';
-                        }
-                        if (addedByUserInput.enable) {
-                            addedByUserInput.enable();
-                        }
-                    }
-                }
-            } else {
-                await createDataset.clear();
-                await createDataset.new();
-                await createDataset.setFieldValue('referenceNumber', initialRefNumber);
-                
-                // Enable type/status/user inputs for new reference
-                if (referenceTypeInput && referenceTypeInput.enable) {
-                    referenceTypeInput.enable();
-                }
-                if (statusInput && statusInput.enable) {
-                    statusInput.enable();
-                }
-                if (addedByUserInput && addedByUserInput.enable) {
-                    addedByUserInput.enable();
-                }
-            }
-        } catch (error) {
-            console.error('Error in initial setup:', error);
-            await createDataset.clear();
-            await createDataset.new();
+        const found = await populateFromExisting(initialRefNumber);
+        if (!found) {
+            await setupNewEntry(initialRefNumber);
         }
     } else {
-        // NEW REFERENCE
-        try {
-            await createDataset.clear();
-            await createDataset.new();
-            
-            // Enable type input for new reference
-            if (referenceTypeInput && referenceTypeInput.enable) {
-                referenceTypeInput.enable();
-            }
-        } catch (error) {
-            console.error('Error setting up new reference:', error);
-        }
+        await setupNewEntry('');
     }
 
     //SET UP TYPE FILTER DROPDOWN
@@ -567,6 +535,7 @@ export async function setupCreateOrEditReference(
         const refNumber = referenceNumberInput?.value?.toString().trim() || '';
         const typeValue = referenceTypeInput?.value || '';
         const statusValue = statusInput?.value || '';
+        const addedByUserValue = addedByUserInput?.value || '';
         const currentDate = new Date();
         
         if (refNumber) {
@@ -580,9 +549,10 @@ export async function setupCreateOrEditReference(
         if (statusValue) {
             await createDataset.setFieldValue('status', statusValue);
         }
-        
-        // Set userID to ABC123
-        await createDataset.setFieldValue('addedByUser', 'ABC123');
+
+        if (addedByUserValue) {
+            await createDataset.setFieldValue('addedByUser', addedByUserValue);
+        }
         
         // Set update date to current timestamp
         await createDataset.setFieldValue('updateDate', currentDate);
