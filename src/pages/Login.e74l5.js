@@ -31,7 +31,7 @@ $w.onReady(function () {
       
       // Refresh to home without state/query params
       setTimeout(() => {
-        wixLocation.to('/home');
+        wixLocation.to(wixLocation.url);
       }, 1500);
       console.log("Redirecting to home page");
     } catch (error) {
