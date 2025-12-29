@@ -5,6 +5,7 @@
 import { currentMember } from 'wix-members-frontend';
 import { primaryNavigate } from './appNavigation';
 import { getUserAccountByMemberId } from 'public/UserAccounts-Auth.js';
+import { showNoAccessState } from 'public/appAuthentication.js';
 
 
 // THIS FILE WILL CONFIGURE THE MY ACCOUNT PAGE FUNCTIONALITY AND DATA FOR THE USER ACCOUNTS IN APP
@@ -43,7 +44,7 @@ export async function loadUserAccountPageData(
         if (myAccountFullName) myAccountFullName.text = fallbackName;
         if (myAccountEmail) myAccountEmail.text = UserAccount.account.loginEmail || 'No Email';
         if (myAccountUserId) myAccountUserId.text = UserAccount.account.userId.toUpperCase() || 'Error Retrieving';
-        if (myAccountStatus) myAccountStatus.label = UserAccount.account.status || 'Error Retrieving';
+        if (myAccountStatus) myAccountStatus.label = UserAccount.account.accountStatus || 'Error Retrieving';
         
         // Setup exit button to navigate back to dashboard
         if (myAccountExitButton) {
@@ -52,11 +53,13 @@ export async function loadUserAccountPageData(
                     await primaryNavigate($w('#multiStateBox1'), 'dashboard');
                 } catch (err) {
                     console.error('Failed to navigate from My Account exit', err);
+                    await showNoAccessState($w('#multiStateBox1'),'Error', 'An error occurred while navigating back to the dashboard.', "Contact Support for further assistance", "Click another option to exit this page.");
                 }
             });
         }
     } catch (error) {
         console.error('Error loading user account data:', error);
+        await showNoAccessState($w('#multiStateBox1'),'Error', 'An error occurred while loading your account data.', "Contact Support for further assistance", "Click another option to exit this page.");
     }
 
     // SET UP ACCOUT OPTIONS REPEATER - TO BE IMPLEMENTED LATER
@@ -81,7 +84,21 @@ export async function loadUserAccountPageData(
         });
     } else {
         console.warn('myAccountOptionsRepeater is not defined');
+        
     }
+
+    // UPDATE PASSWORD BUTTON HANDLER
+    // THIS MULTISTATE IS NOT YET IMPLEMENTED - PLACEHOLDER FOR FUTURE - REDIRECT TO DASHBOARD FOR NOW
+    updatePasswordButton.onClick(async () => {
+        try {
+            await primaryNavigate($w('#multiStateBox1'), 'dashboard'); // Change to 'changePassword' when implemented
+            await showNoAccessState($w('#multiStateBox1'),'No Yet Ready', 'Change Password functionality is not yet implemented.', "Contact Support for further assistance", "Click another option to exit this page.");
+            
+        } catch (err) {
+            console.error('Failed to navigate to Change Password', err);
+            await showNoAccessState($w('#multiStateBox1'),'Error', 'An error occurred while trying to access Change Password.', "Contact Support for further assistance", "Click another option to exit this page.");
+        }
+    });
 
 }   
 // END OF FILE  
