@@ -20,6 +20,10 @@ import { primaryNavigate, reportsNavigate } from 'public/appNavigation';
 
 const REPORT_PAGE_SIZE = 1000;
 
+// Avoid stacking multiple dropdown handlers across report calls
+let reportsDropdownBound = false;
+let reportsDropdownCtx = null;
+
 async function fetchLatestByReference({ searchValue = '', typeValue = '', statusValue = '', byUserValue = '', statusExclusion = '' } = {}) {
     const opts = { suppressAuth: true, suppressHooks: true };
     let query = wixData
@@ -179,6 +183,48 @@ async function sortDatasetByNewest(dataset) {
     }
 }
 
+function ensureReportsDropdownHandler(ctx) {
+    reportsDropdownCtx = ctx;
+    if (reportsDropdownBound) {
+        return;
+    }
+    reportsDropdownBound = true;
+    ctx.reportsInMenuDropdown.onChange(async (event) => {
+        const selectedValue = event.target.value;
+        if (selectedValue === 'inNotReceived') {
+            await reportsInNotReceived(
+                ctx.reportsDataset,
+                ctx.reportsTable,
+                ctx.reportsFilterSearch_Input,
+                ctx.reportsInMenuDropdown,
+                ctx.primaryMultiState,
+                ctx.reportsMultiState,
+                ctx.reportsLoadingProgressBar
+            );
+        } else if (selectedValue === 'notDelivered') {
+            await reportsNotDelivered(
+                ctx.reportsDataset,
+                ctx.reportsTable,
+                ctx.reportsFilterSearch_Input,
+                ctx.reportsInMenuDropdown,
+                ctx.primaryMultiState,
+                ctx.reportsMultiState,
+                ctx.reportsLoadingProgressBar
+            );
+        } else if (selectedValue === 'allInbound') {
+            await reportsAllInbound(
+                ctx.reportsDataset,
+                ctx.reportsTable,
+                ctx.reportsFilterSearch_Input,
+                ctx.reportsInMenuDropdown,
+                ctx.primaryMultiState,
+                ctx.reportsMultiState,
+                ctx.reportsLoadingProgressBar
+            );
+        }
+    });
+}
+
 
 
 export async function reportsInNotReceived(reportsDataset,
@@ -210,34 +256,14 @@ export async function reportsInNotReceived(reportsDataset,
     ];
     reportsInMenuDropdown.value = 'inNotReceived';
 
-    // On Change for th reportsInMenuDropdown should be handled in the page code to call the appropriate report function.
-    reportsInMenuDropdown.onChange( async (event) => {
-        const selectedValue = event.target.value;
-        if (selectedValue === 'inNotReceived') {
-            await reportsInNotReceived(reportsDataset,
-                reportsTable,
-                reportsFilterSearch_Input,
-                reportsInMenuDropdown,
-                primaryMultiState,
-                reportsMultiState,
-                reportsLoadingProgressBar);
-        } else if (selectedValue === 'notDelivered') {
-            await reportsNotDelivered(reportsDataset,
-                reportsTable,
-                reportsFilterSearch_Input,
-                reportsInMenuDropdown,
-                primaryMultiState,
-                reportsMultiState,
-                reportsLoadingProgressBar);
-        } else if (selectedValue === 'allInbound') {
-            await reportsAllInbound(reportsDataset,
-                reportsTable,
-                reportsFilterSearch_Input,
-                reportsInMenuDropdown,
-                primaryMultiState,
-                reportsMultiState,
-                reportsLoadingProgressBar);
-        }
+    ensureReportsDropdownHandler({
+        reportsDataset,
+        reportsTable,
+        reportsFilterSearch_Input,
+        reportsInMenuDropdown,
+        primaryMultiState,
+        reportsMultiState,
+        reportsLoadingProgressBar,
     });
 
     return ids.length;
@@ -280,35 +306,15 @@ export async function reportsNotDelivered(reportsDataset,
     ];
     reportsInMenuDropdown.value = 'notDelivered';
 
-    // On Change for th reportsInMenuDropdown should be handled in the page code to call the appropriate report function.
-    reportsInMenuDropdown.onChange( async (event) => {
-        const selectedValue = event.target.value;
-        if (selectedValue === 'inNotReceived') {
-            await reportsInNotReceived(reportsDataset,
-                reportsTable,
-                reportsFilterSearch_Input,
-                reportsInMenuDropdown,
-                primaryMultiState,
-                reportsMultiState,
-                reportsLoadingProgressBar);
-        } else if (selectedValue === 'notDelivered') {
-            await reportsNotDelivered(reportsDataset,
-                reportsTable,
-                reportsFilterSearch_Input,
-                reportsInMenuDropdown,
-                primaryMultiState,
-                reportsMultiState,
-                reportsLoadingProgressBar);
-        } else if (selectedValue === 'allInbound') {
-            await reportsAllInbound(reportsDataset,
-                reportsTable,
-                reportsFilterSearch_Input,
-                reportsInMenuDropdown,
-                primaryMultiState,
-                reportsMultiState,
-                reportsLoadingProgressBar);
-        }
-    })
+    ensureReportsDropdownHandler({
+        reportsDataset,
+        reportsTable,
+        reportsFilterSearch_Input,
+        reportsInMenuDropdown,
+        primaryMultiState,
+        reportsMultiState,
+        reportsLoadingProgressBar,
+    });
 
     return ids.length;
 }
@@ -349,35 +355,15 @@ export async function reportsAllInbound(reportsDataset,
     ];
     reportsInMenuDropdown.value = 'allInbound';
 
-    // On Change for th reportsInMenuDropdown should be handled in the page code to call the appropriate report function.
-    reportsInMenuDropdown.onChange( async (event) => {
-        const selectedValue = event.target.value;
-        if (selectedValue === 'inNotReceived') {
-            await reportsInNotReceived(reportsDataset,
-                reportsTable,
-                reportsFilterSearch_Input,
-                reportsInMenuDropdown,
-                primaryMultiState,
-                reportsMultiState,
-                reportsLoadingProgressBar);
-        } else if (selectedValue === 'notDelivered') {
-            await reportsNotDelivered(reportsDataset,
-                reportsTable,
-                reportsFilterSearch_Input,
-                reportsInMenuDropdown,
-                primaryMultiState,
-                reportsMultiState,
-                reportsLoadingProgressBar);
-        } else if (selectedValue === 'allInbound') {
-            await reportsAllInbound(reportsDataset,
-                reportsTable,
-                reportsFilterSearch_Input,
-                reportsInMenuDropdown,
-                primaryMultiState,
-                reportsMultiState,
-                reportsLoadingProgressBar);
-        }
-    })
+    ensureReportsDropdownHandler({
+        reportsDataset,
+        reportsTable,
+        reportsFilterSearch_Input,
+        reportsInMenuDropdown,
+        primaryMultiState,
+        reportsMultiState,
+        reportsLoadingProgressBar,
+    });
 
     return ids.length;
 }
