@@ -113,17 +113,14 @@ export async function onMemberLogin(mainLoginButton, quickMenuWrapper, quickMenu
             });
             quickMenuAccountButton.onClick(async () => {
                 quickMenuWrapper.collapse();
-                wixLocationFrontend.to('/home');
                 await primaryNavigate(primaryMultiState, primary_MyAccountState);
             });
             quickMenuTeamButton.onClick(async () => {
                 quickMenuWrapper.collapse();
-                wixLocationFrontend.to('/home');
                 await primaryNavigate(primaryMultiState, primary_TeamState);
             });
             quickMenuManageButton.onClick(async () => {
                 quickMenuWrapper.collapse();
-                wixLocationFrontend.to('/home');
                 await primaryNavigate(primaryMultiState, primary_Dashboard);
             });
             quickMenuLogoutButton.onClick(async () => {
