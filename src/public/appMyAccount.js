@@ -68,30 +68,20 @@ export async function loadUserAccountPageData(
     ];
     if (myAccountOptionsRepeater) {
         myAccountOptionsRepeater.data = repeaterData;
-        myAccountOptionsRepeater.onItemReady( (item, itemData, index) => {
-            $item('#myAccount-Options-Repeater-Item-Button').label = itemData.label;
-            $item('#myAccount-Options-Repeater-Item-Button').onClick( async () => {
-                console.log(`Option selected: ${itemData.label}`);
-                // Implement option functionality here
-                await primaryNavigate($w('#multiStateBox1'), itemData.primaryMultiStateLink); // Placeholder navigation
-            });
+        myAccountOptionsRepeater.onItemReady(($item, itemData) => {
+            const optionButton = $item('#myAccount-Options-Repeater-Item-Button');
+            if (optionButton) {
+                optionButton.label = itemData.label;
+                optionButton.onClick(async () => {
+                    console.log(`Option selected: ${itemData.label}`);
+                    // Implement option functionality here
+                    await primaryNavigate($w('#multiStateBox1'), itemData.primaryMultiStateLink); // Placeholder navigation
+                });
+            }
         });
     } else {
-        
-        //ErrorData
-        const repeaterData2 = [
-            { _id: "01", label: "Error loading options", primaryMultiStateLink: 'dashboard' }
-        ];   
         console.warn('myAccountOptionsRepeater is not defined');
-        myAccountOptionsRepeater.onItemReady( (item, itemData, index) => {
-            myAccountOptionsRepeaterItemButton.label = itemData.label;
-            myAccountOptionsRepeaterItemButton.onClick( async () => {
-                console.log(`Option selected: ${itemData.label}`);
-                // Implement option functionality here
-                await primaryNavigate($w('#multiStateBox1'), itemData.primaryMultiStateLink); // Placeholder navigation
-            });
-        }); 
-    }   
+    }
 
 }   
 // END OF FILE  
