@@ -384,43 +384,44 @@ export async function reportsAllInbound(reportsDataset,
 // IF MULTIPLE RECORDS EXIST WITH THE SAME REFERENCE NUMBER, ONLY THE MOST RECENT RECORD BASED ON updateDate FIELD WILL BE CONSIDERED FOR THE REPORT COUNT
 export async function getInboundReceivedOnlyCount() {
     try {
-        const results = await wixData.query('DemoData')
+        const opts = { suppressAuth: true, suppressHooks: true };
+        let query = wixData
+            .query('DemoData')
             .ne('referenceNumber', '')
             .isNotEmpty('referenceNumber')
-            .find({ suppressAuth: true, suppressHooks: true });
+            .descending('updateDate')
+            .descending('_updatedDate')
+            .descending('_createdDate');
 
-        // Track the latest item per referenceNumber by update date
+        let results = await query.limit(REPORT_PAGE_SIZE).find(opts);
+
         const latestByRef = new Map();
-        results.items.forEach((item) => {
-            const refNum = item.referenceNumber ? item.referenceNumber.trim() : '';
-            if (!refNum) {
-                return;
+        const process = (items) => {
+            for (const item of items || []) {
+                const refNum = item.referenceNumber ? item.referenceNumber.trim() : '';
+                if (!refNum || latestByRef.has(refNum)) {
+                    continue;
+                }
+                latestByRef.set(refNum, item);
             }
+        };
 
-            const dateValue = new Date(item.updateDate || item._updatedDate || item._createdDate).getTime();
-            const current = latestByRef.get(refNum);
+        process(results.items);
+        while (results.hasNext()) {
+            results = await results.next();
+            process(results.items);
+        }
 
-            if (!current) {
-                latestByRef.set(refNum, { item, dateValue });
-                return;
-            }
-
-            if (dateValue > current.dateValue) {
-                latestByRef.set(refNum, { item, dateValue });
-            }
-        });
-
-        // Count only refs whose latest item has status 'Inbound Received'
         let count = 0;
-        latestByRef.forEach(({ item }) => {
+        latestByRef.forEach((item) => {
             if (item.status === 'Inbound Received') {
-                count += 1;
+                count++;
             }
         });
 
         return count;
     } catch (error) {
-        console.error('Error fetching data for inbound received only count:', error);
+        console.error('Error calculating Inbound Received only count:', error);
         return 0;
     }
-}   
+}
