@@ -73,7 +73,7 @@ export async function loggedInMember(mainLoginButton, quickMenuWrapper, quickMen
                 quickMenuWrapper.collapse();
                 const ms = getPrimaryMultiState();
                 if (ms) {
-                    await primaryNavigate(ms, primary_Dashboard);
+                    await primaryNavigate(ms, primary_ManageTeamState);
                 } else {
                     wixLocationFrontend.to('/home');
                 }
