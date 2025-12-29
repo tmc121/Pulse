@@ -354,13 +354,27 @@ export async function initializeSearchSelected(
         }
     };
 
+    const pickValue = (item, keys = []) => {
+        for (const key of keys) {
+            const val = normalizeValue(item?.[key]);
+            if (val) {
+                return val;
+            }
+        }
+        return '';
+    };
+
     const syncFiltersFromItem = (item) => {
         if (!item) {
             return;
         }
-        setDropdownValueAndDisable(filterTypeDropdown, item.referenceType, '');
-        setDropdownValueAndDisable(filterStatusDropdown, item.status, '');
-        setDropdownValueAndDisable(filterByUserDropdown, item.addedByUser, item.addedByUser || 'Not available');
+        const typeVal = pickValue(item, ['referenceType', 'referenceTypeDisplay', 'type', 'referenceTypeLabel']);
+        const statusVal = pickValue(item, ['status', 'referenceStatus', 'statusDisplay', 'referenceStatusLabel']);
+        const byUserVal = pickValue(item, ['addedByUser', 'byUser', 'userId', 'addedByUserId']);
+
+        setDropdownValueAndDisable(filterTypeDropdown, typeVal, typeVal || 'Not available');
+        setDropdownValueAndDisable(filterStatusDropdown, statusVal, statusVal || 'Not available');
+        setDropdownValueAndDisable(filterByUserDropdown, byUserVal, byUserVal || 'Not available');
     };
 
     const applySelectedFilters = async (referenceOverride = undefined, itemOverride = undefined) => {
@@ -375,6 +389,8 @@ export async function initializeSearchSelected(
             || (selectedDataset && typeof selectedDataset.getCurrentItem === 'function'
                 ? selectedDataset.getCurrentItem()
                 : null);
+        // Ensure dropdowns use the latest item values before filtering
+        syncFiltersFromItem(currentItem);
         // apply filter based on current dropdown values or overrides
         await applyFilter(
             selectedDataset,
