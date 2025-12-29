@@ -13,6 +13,8 @@ import wixData from 'wix-data';
 // BASED ON A LOGGED-IN MEMBER'S _ID;
 
 // Change this function to use connectedMemberId
+// Call Exampple: getUserAccountByMemberId(member._id)
+// Returns: { activeAccount: boolean, account: object|null }
 export async function getUserAccountByMemberId(memberId){
     const cleanId = memberId || '';
     if (!cleanId) {

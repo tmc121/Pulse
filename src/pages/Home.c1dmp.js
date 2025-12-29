@@ -119,6 +119,7 @@ const manageTeam_SelectedItem_Save_Button = $w('#manageTeam-SelectedItem-Save-Bu
 const myTeam_Close_Button = $w('#myTeam-Exit-Button');
 const myTeam_Team_Repeater = $w('#myTeam-Team-Repeater');
 const myTeam_TeamItem_Box = $w('#myTeam-TeamItem-box');
+const myTeam_TeamItem_Button = $w('#myTeam-TeamItem-Button');
 const myTeam_TeamItem_CheckBox = $w('#myTeam-TeamItem-CheckBox');
 const myTeam_SelectedTeam_Title = $w('#myTeam-SelectedTeam-Title');
 const myTeam_SelectedTeam_UserID = $w('#myTeam-SelectedTeam-UserId');
