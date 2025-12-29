@@ -3,7 +3,6 @@
 
 import wixData from 'wix-data';
 import { primaryNavigate } from 'public/appNavigation.js';
-import { getPrimaryMultiState } from 'public/appNavigation.js';
 import { getUserAccountByMemberId } from 'public/UserAccounts-Auth.js';
 import { getLoggedInMemberId } from 'public/appAuthentication.js';
 
@@ -49,7 +48,7 @@ export async function setMyTeamPage(
     // Close handler to navigate back to dashboard
     closeButton.onClick(async () => {
         try {
-            await primaryNavigate(getPrimaryMultiState(), 'dashboard');
+            await primaryNavigate($w('#multiStateBox1'), 'dashboard');
         } catch (err) {
             console.error('Failed to navigate from My Team close', err);
         }
