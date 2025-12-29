@@ -6,6 +6,7 @@
 import wixData from 'wix-data';
 import { primaryNavigate } from 'public/appNavigation.js';
 import { getLoggedInMemberId } from 'public/appAuthentication.js';
+import { getUserAccountByMemberId } from 'public/UserAccounts-Auth.js';
 
 
 // THIS FILE WILL CONTAIN ALL FUNCTIONS RELATED TO THE MANAGE TEAM PAGE AND ITS FUNCTIONALITY
@@ -101,18 +102,24 @@ export async function setManageTeamPage(
     // Additional setup for accountsRepeater and other controls to be implemented later as needed
     
     // THE ACCOUNTS REPEATER DATA WILL BE POPULATED BASED ON THE TEAM MEMBERS LINKED TO THE ADMIN USER ACCOUNT
-    // THE USER ACCOUNT MUST HAVE A TEAM ADMIN THAT IS THE SAME AS THE LOGGED IN MEMBER'S USER ACCOUNT ID.
-    // NOT TEAM MEMBERS USER ACCOUNTS CAN HAVE MORE THAN ONE TEAM ADMIN, BUT A TEAM ADMIN CAN ONLY HAVE ONE USER ACCOUNT.
-    // THIS WILL ALLOW MULTIPLE ADMINS TO MANAGE THE SAME TEAM MEMBERS IF NEEDED.
-
     const teamMembers = []; // TO BE FILLED WITH TEAM MEMBER DATA FROM USER ACCOUNTS
 
     try {
-        const adminId = await getLoggedInMemberId();
-        const result = await wixData.query('UserAccounts')
-            .eq('teamAdmin', adminId)
-            .find({ suppressAuth: true, suppressHooks: true });
-        (result?.items || []).forEach((item) => teamMembers.push(item));
+        const memberId = await getLoggedInMemberId();
+        const adminAccount = await getUserAccountByMemberId(memberId);
+        const account = adminAccount?.account;
+        if (!account) {
+            console.warn('Manage Team: no admin account found for current member');
+        }
+        const adminAccountId = account?._id || account?._id;
+        if (!adminAccountId) {
+            console.warn('Manage Team: admin identifier missing; cannot query team members');
+        } else {
+            const result = await wixData.query('UserAccounts')
+                .hasSome('teamAdmin', adminAccountId)
+                .find({ suppressAuth: true, suppressHooks: true });
+            (result?.items || []).forEach((item) => teamMembers.push(item));
+        }
         accountsRepeater.data = teamMembers;
     } catch (error) {
         console.error('Error querying team members for Manage Team page:', error);
