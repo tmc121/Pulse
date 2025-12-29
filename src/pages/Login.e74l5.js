@@ -29,9 +29,9 @@ $w.onReady(function () {
       console.log("Member is logged in");
       login_ResultsStatus_Text.text = "Login successful!";
       
-      // Redirect to home with parameter to trigger team assignment check
+      // Refresh to home without state/query params
       setTimeout(() => {
-        wixLocation.to('/home?freshLogin=true');
+        wixLocation.to('/home');
       }, 1500);
       console.log("Redirecting to home page");
     } catch (error) {

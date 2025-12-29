@@ -35,7 +35,7 @@ $w.onReady( async function () {
     // LOGO CLICK HANDLER TO REFRESH TO DASHBOARD MAIN
 main_LogoBox.onClick( async () => {
     try {
-        wixLocationFrontend.to('/home?state=dashboard');
+        wixLocationFrontend.to('/home');
     } catch (error) {
         console.error('Error navigating to Home Dashboard page:', error);
     }
@@ -43,7 +43,7 @@ main_LogoBox.onClick( async () => {
 
 main_LogoTile.onClick( async () => {
     try {
-        wixLocationFrontend.to('/home?state=dashboard');
+        wixLocationFrontend.to('/home');
     } catch (error) {
         console.error('Error navigating to Home Dashboard page:', error);
     }

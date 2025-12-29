@@ -67,9 +67,9 @@ $w.onReady(function () {
       
       signUp_ResultsStatus_Text.text = "Sign up successful! Redirecting...";
       
-      // Redirect to home with freshLogin parameter to trigger Get Team check
+      // Refresh to home without query params
       setTimeout(() => {
-        wixLocationFrontend.to('/home?freshLogin=true');
+        wixLocationFrontend.to('/home');
       }, 1500);
     } catch (error) {
       console.error(error);

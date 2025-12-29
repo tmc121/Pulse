@@ -164,6 +164,19 @@ const mainMenu_ReportAll_Button = $w('#mainMenu-Button-ReportAll');
 
 const mainMenu_CreateReference_Button = $w('#mainMenu-Button-CreateReference');
 
+// THIS WILL BE CALLED ON THE 'appNavigation.js' TO SETUP THE QUICKMENU BUTTONS
+export async function quickMenuHelper(accountButton, teamButton, manageButton) {
+    accountButton.onClick(async () => {
+        await primaryNavigate(primaryMultiState, primary_MyAccountState);
+    });
+    teamButton.onClick(async () => {
+        await primaryNavigate(primaryMultiState, primary_TeamState);
+    });
+    manageButton.onClick(async () => {
+        await primaryNavigate(primaryMultiState, primary_Dashboard);
+    });
+}
+
 // URL-based state overrides removed to avoid navigation side effects
 
 $w.onReady( async function () {
