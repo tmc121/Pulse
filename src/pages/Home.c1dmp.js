@@ -392,7 +392,7 @@ async function setupDashboardManageSection() {
                             manageTeam_SelectedItem_FullName_Text,
                             manageTeam_SelectedItem_Email_Text,
                             manageTeam_SelectedItem_Status_Button,
-                            manageTeam_SelectedItem_DisableAccount_Button,
+                            manageTeam_SelectedItem_Disable_Button,
                             manageTeam_SelectedItem_Discard_Button,
                             manageTeam_SelectedItem_Save_Button
                         );

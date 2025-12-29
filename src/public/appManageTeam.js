@@ -3,6 +3,9 @@
 
 
 // IMPORTS
+import wixData from 'wix-data';
+import { primaryNavigate } from 'public/appNavigation.js';
+import { getLoggedInMemberId } from 'public/appAuthentication.js';
 
 
 // THIS FILE WILL CONTAIN ALL FUNCTIONS RELATED TO THE MANAGE TEAM PAGE AND ITS FUNCTIONALITY
