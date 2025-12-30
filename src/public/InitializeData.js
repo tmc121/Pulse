@@ -1,8 +1,9 @@
 // File: src/public/InitializeData.js
 // Search and selection helpers used by Home.c1dmp.js
 
-import wixData from 'wix-data';
+import wixData, { get } from 'wix-data';
 import { currentMember } from 'wix-members-frontend';
+import { getUserAccountByMemberId } from './UserAccounts-Auth';
 
 const SEARCH_PAGE_SIZE = 500;
 
@@ -503,21 +504,6 @@ export async function initializeSearchSelected(
     
     await applySelectedFilters();
 
-    // COPY THE TEXT OF THE SELECTED REFERENCE TO THE CLIPBOARD WHEN CLICKED
-    // IF THERE IS A VALID REFERENCE NUMBER
-    selectedReferenceDisplay.onClick(async () => {
-        const refText = selectedReferenceDisplay?.text || '';
-        const match = refText.match(/Reference:\s*(.*)/);
-        const refNumber = match ? match[1] : '';
-        if (refNumber) {
-            try {
-                await navigator.clipboard.writeText(refNumber);
-                console.log(`Copied reference number to clipboard: ${refNumber}`);
-            } catch (error) {
-                console.error('Failed to copy reference number to clipboard:', error);
-            }
-        }
-    });
 
     
 }
@@ -789,4 +775,82 @@ export async function setupCreateOrEditReference(
     }
 }
 
+// THIS CODE WILL INSERT A NEW ITEM INTO THE DEMODATA COLLECTION USING ELEMENTS FROM THE CREATE REFERENCE FORM
+// THE FUNCTION WILL BE CALLED WHEN THE USER CLICKS THE SUBMIT BUTTON ON THE CREATE REFERENCE FORM
+// THE FUNCTION WILL GATHER THE DATA FROM THE FORM INPUTS AND INSERT A NEW ITEM INTO THE COLLECTION
+// AFTER INSERTING THE ITEM, IT WILL CLEAR THE FORM INPUTS FOR A NEW ENTRY
+// THE FUNCTION WILL ALSO HANDLE ANY ERRORS THAT MAY OCCUR DURING THE INSERTION PROCESS
+// THE FUNCTION WILL ALSO VALIDATE THE INPUTS TO ENSURE REQUIRED FIELDS ARE FILLED OUT
+// THE FUNCTION WILL ALSO PROVIDE FEEDBACK TO THE USER ABOUT THE SUCCESS OR FAILURE OF THE OPERATION
+// THE FUNCTION WILL ALSO LOG THE OPERATION DETAILS FOR AUDIT PURPOSES 
+export async function insertNewDemoDataItem(
+    referenceNumberInput,
+    referenceTypeInput,
+    statusInput,
+    addedByUserInput,
+    submitButton,
+    createDataset
+) {
+
+    const loggedInMember = await currentMember.getMember();
+    if (!loggedInMember) {
+        console.error('No logged in member found. Cannot insert new DemoData item.');
+        return;
+    }
+    const userAccount = await getUserAccountByMemberId(await loggedInMember._id);
+    if (!userAccount) {
+        console.error('No user account found for the logged in member. Cannot insert new DemoData item.');
+        return;
+    }
+
+    const userAccount_Name = `${userAccount.firstName || ''} ${userAccount.lastName || ''}`.trim();
+    const userAccount_UserId = userAccount.userId || '';
+    
+    addedByUserInput.options = [{ label: userAccount_Name || 'Not available', value: userAccount_UserId || '' }];
+    addedByUserInput.value = userAccount_UserId || '';
+    let toInsert = {};
+
+    if (referenceNumberInput) {
+        toInsert.referenceNumber = referenceNumberInput.value || '';
+    }
+    if (referenceTypeInput) {
+        toInsert.referenceType = referenceTypeInput.value || '';
+    }
+    if (statusInput) {
+        toInsert.status = statusInput.value || '';
+    }
+    if (addedByUserInput) {
+        toInsert.addedByUser = addedByUserInput.value || '';
+    }
+
+    // Set the update date to current timestamp
+    toInsert.updateDate = new Date();
+
+    try {
+        const result = await wixData.insert('DemoData', toInsert, { suppressAuth: true, suppressHooks: true });
+        console.log('New DemoData item inserted with ID:', result._id);
+
+        // Clear form inputs after successful insertion
+        if (referenceNumberInput) {
+            referenceNumberInput.value = '';
+        }
+        if (referenceTypeInput) {
+            referenceTypeInput.value = '';
+        }
+        if (statusInput) {
+            statusInput.value = '';
+        }
+        if (addedByUserInput) {
+            addedByUserInput.value = '';
+        }
+
+        // Optionally refresh the dataset to reflect the new item
+        if (createDataset && typeof createDataset.refresh === 'function') {
+            await createDataset.refresh();
+        }
+
+    } catch (error) {
+        console.error('Error inserting new DemoData item:', error);
+    }   
+}   
 // END OF FILE src/public/InitializeData.js

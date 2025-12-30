@@ -9,6 +9,7 @@ import wixLocationFrontend from 'wix-location-frontend';
 import { primaryNavigate } from './appNavigation';
 import { setMyTeamPage } from 'public/appMyTeam.js';
 import { setManageTeamPage } from 'public/appManageTeam.js';
+import wixWindowFrontend from 'wix-window-frontend';
 // THIS FILE WILL CONTAIN ALL FUNCTIONS RELATED TO APP AUTHENTICATION
 // THIS WILL HELP WITH FUNCTIONS INSIDE THE MASTER PAGE AND OTHER PAGES TO CALL THESE FUNCTIONS FROM HERE RATHER THAN REWRITING THE SAME FUNCTION IN MULTIPLE PAGES
 
@@ -58,6 +59,7 @@ export async function loggedInMember(mainLoginButton, quickMenuWrapper, quickMen
             // Member is logged in
             const member = await currentMember.getMember();
             const userAccount = await getUserAccountByMemberId(member._id);
+            await ensureTeamAdminAssigned(member._id, userAccount);
             const displayName = userAccount?.account
                 ? `${userAccount.account.firstName || ''} ${userAccount.account.lastName || ''}`.trim() || 'Account'
                 : 'Account';
@@ -204,6 +206,7 @@ export async function onMemberLogin(mainLoginButton, quickMenuWrapper, quickMenu
         const member = await currentMember.getMember();
         if (member) {
             const userAccount = await getUserAccountByMemberId(member._id);
+            await ensureTeamAdminAssigned(member._id, userAccount);
             const displayName = userAccount?.account
                 ? `${userAccount.account.firstName || ''} ${userAccount.account.lastName || ''}`.trim() || 'Account'
                 : 'Account';
@@ -375,4 +378,26 @@ export async function showNoAccessState(primaryMultiState,
     }
 }
 
+// THIS CODE WILL CHECK IF THE LOGGED-IN MEMBER'S USER ACCOUNT HAS A TEAM ADMIN LISTED
+// IF SO, RETURN TRUE, ELSE RETURN FALSE
+// THIS WILL HELP DETERMINE IF TO PROMPT THE GET TEAM POPUP/LIGHTBOX
 
+export async function checkMemberHasTeamAdmin(memberId, cachedUserAccount) {
+    try {
+        const userAccount = cachedUserAccount || await getUserAccountByMemberId(memberId);
+        const admins = userAccount?.account?.teamAdmin;
+        return Array.isArray(admins) && admins.length > 0;
+    } catch (error) {
+        console.error("Error checking if member has team admin privileges:", error);
+        throw error; // Rethrow the error for further handling if needed
+    }
+}   
+
+async function ensureTeamAdminAssigned(memberId, cachedUserAccount) {
+    const hasTeamAdmin = await checkMemberHasTeamAdmin(memberId, cachedUserAccount);
+    if (hasTeamAdmin) {
+        return true;
+    }
+    wixWindowFrontend.openLightbox('Get Team');
+    return false;
+}
