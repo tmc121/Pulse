@@ -40,7 +40,7 @@ $w.onReady(async function () {
         }
 
         getTeam_Status_Display.text = "Validating admin access...";
-        const { isValid, adminAccount } = await validateAdminUserId(adminUserId, memberAccount._id);
+        const { isValid, adminAccount } = await validateAdminUserId(adminUserId);
         if (isValid) {
             const name = `${adminAccount.firstName || ''} ${adminAccount.lastName || ''}`.trim();
             getTeam_Status_Display.text = `Admin verified: ${name || 'Admin'} • ${adminAccount.userId}`;
@@ -63,7 +63,7 @@ $w.onReady(async function () {
         getTeam_ConnectMyTeam_Button.disable();
         getTeam_Status_Display.text = "Connecting your team...";
 
-        const { isValid, adminAccount } = await validateAdminUserId(adminUserId, memberAccount._id);
+        const { isValid, adminAccount } = await validateAdminUserId(adminUserId);
         if (!isValid || !adminAccount?._id) {
             getTeam_Status_Display.text = "Admin User ID is not authorized for your account.";
             return;
@@ -116,8 +116,8 @@ async function loadMemberAccount(memberId) {
 }
 
 async function validateAdminUserId(adminUserIdRaw, memberAccountId) {
-    const adminUserId = (adminUserIdRaw || '').trim().toLowerCase();
-    if (!adminUserId || !memberAccountId) {
+    const adminUserId = (adminUserIdRaw || '').trim().toUpperCase();
+    if (!adminUserId) {
         return { isValid: false, adminAccount: null };
     }
 
@@ -126,13 +126,13 @@ async function validateAdminUserId(adminUserIdRaw, memberAccountId) {
             .query('UserAccounts')
             .eq('userId', adminUserId)
             .eq('status', 'Active')
-            .hasSome('adminAccount', [memberAccountId])
+            .eq('adminAccount', true)
             .limit(1)
             .find({ suppressAuth: true, suppressHooks: true });
 
         const adminAccount = results.items?.[0] || null;
-        const isAdmin = Array.isArray(adminAccount?.adminAccount) && adminAccount.adminAccount.includes(memberAccountId);
-        return { isValid: !!adminAccount && isAdmin, adminAccount: isAdmin ? adminAccount : null };
+        const isAdmin = !!adminAccount;
+        return { isValid: isAdmin, adminAccount: isAdmin ? adminAccount : null };
     } catch (error) {
         console.error('Error validating admin userId:', error);
         return { isValid: false, adminAccount: null };
