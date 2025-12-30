@@ -14,24 +14,24 @@ const getTeam_Exit_Button = $w('#getTeam-Exit-Button');
 // Implementation will depend on the specific team service being integrated.
 // Below is a placeholder for where you would add your integration logic.
 // The code will need to query the userAccounts collection to validate a users is an admin the adminAccount field for the adminUserId must be true. The user must match the an adminUsers userid with the input value from adminUserId_Input.
-// Validate the entered admin userId against a UserAccounts document whose adminAccount is an array of managed userAccountIds
-async function validateAdminUserId(adminUserIdRaw) {
-  const adminUserId = (adminUserIdRaw || '').trim();
-  if (!adminUserId) {
+// Validate the entered admin userId against a UserAccounts document whose adminAccount array includes this member's account
+async function validateAdminUserId(adminUserIdRaw, memberAccountId) {
+  const adminUserId = (adminUserIdRaw || '').trim().toLowerCase();
+  if (!adminUserId || !memberAccountId) {
     return { isValid: false, account: null };
   }
 
   try {
     const results = await wixData
       .query('UserAccounts')
-      .eq('userId', adminUserId.toLowerCase())
-      .eq('adminAccount', true)
+      .eq('userId', adminUserId)
       .eq('status', 'Active')
+      .hasSome('adminAccount', [memberAccountId])
       .limit(1)
       .find({ suppressAuth: true, suppressHooks: true });
 
     const account = results.items && results.items[0];
-    const isAdmin = Array.isArray(account?.adminAccount) && account.adminAccount.length > 0;
+    const isAdmin = Array.isArray(account?.adminAccount) && account.adminAccount.includes(memberAccountId);
     return { isValid: !!account && isAdmin, account: isAdmin ? account : null };
   } catch (error) {
     console.error('Error validating admin userId:', error);
@@ -45,6 +45,25 @@ $w.onReady(async function () {
   getTeam_ConnectMyTeam_Button.disable();
   getTeam_Status_Display.text = "Enter your Admin User ID to connect.";
 
+  // Load current member's UserAccount (needed for validation)
+  const member = await currentMember.getMember();
+  const memberId = member?._id;
+  let memberAccount = null;
+  if (memberId) {
+    const memberAccountResults = await wixData
+      .query('UserAccounts')
+      .eq('connectedMemberId', memberId)
+      .limit(1)
+      .find({ suppressAuth: true, suppressHooks: true });
+    memberAccount = memberAccountResults.items && memberAccountResults.items[0];
+  }
+
+  if (!memberAccount || !memberAccount._id) {
+    getTeam_Status_Display.text = "We could not load your account. Please re-login.";
+    getTeam_ConnectMyTeam_Button.disable();
+    return;
+  }
+
   // Live validation on input change
   getTeam_AdminUserId_Input.onInput(async () => {
     const adminUserId = (getTeam_AdminUserId_Input.value || '').trim();
@@ -55,7 +74,7 @@ $w.onReady(async function () {
     }
 
     getTeam_Status_Display.text = "Validating admin access...";
-    const { isValid } = await validateAdminUserId(adminUserId);
+    const { isValid } = await validateAdminUserId(adminUserId, memberAccount._id);
     if (isValid) {
       getTeam_Status_Display.text = "Admin verified. You can connect your team.";
       getTeam_ConnectMyTeam_Button.enable();
@@ -77,7 +96,7 @@ $w.onReady(async function () {
     getTeam_ConnectMyTeam_Button.disable();
     getTeam_Status_Display.text = "Connecting your team...";
 
-    const { isValid, account } = await validateAdminUserId(adminUserId);
+    const { isValid, account } = await validateAdminUserId(adminUserId, memberAccount._id);
     if (!isValid || !account || !account._id) {
       getTeam_Status_Display.text = "Admin User ID is not an active admin account.";
       getTeam_ConnectMyTeam_Button.enable();
@@ -85,20 +104,9 @@ $w.onReady(async function () {
     }
 
     try {
-      // Get the current member's ID
-      const member = await currentMember.getMember();
-      if (!member || !member._id) {
-        throw new Error('Unable to retrieve member information');
-      }
-
       // Update the current user's account to link them to the team admin
-      const results = await wixData
-        .query('UserAccounts')
-        .eq('connectedMemberId', member._id)
-        .find({ suppressAuth: true, suppressHooks: true });
-
-        if (results.items && results.items.length > 0) {
-        const userAccount = results.items[0];
+      const userAccount = memberAccount;
+      if (userAccount) {
         // Multi-reference expects an array; allow multiple admins while deduping
         const existingAdmins = Array.isArray(userAccount.teamAdmin)
           ? userAccount.teamAdmin.filter(Boolean)
