@@ -384,8 +384,9 @@ export async function showNoAccessState(primaryMultiState,
 
 export async function checkMemberHasTeamAdmin(memberId, cachedUserAccount) {
     try {
-        const userAccount = cachedUserAccount || await getUserAccountByMemberId(memberId);
-        const admins = userAccount?.account?.teamAdmin;
+        const userAccountWrapper = cachedUserAccount || await getUserAccountByMemberId(memberId);
+        const acc = userAccountWrapper?.account ?? userAccountWrapper; // accept either wrapper or raw account
+        const admins = acc?.teamAdmin;
         return Array.isArray(admins) && admins.length > 0;
     } catch (error) {
         console.error("Error checking if member has team admin privileges:", error);
