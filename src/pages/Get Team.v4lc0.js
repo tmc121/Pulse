@@ -78,7 +78,7 @@ $w.onReady(async function () {
                 : userAccount.teamAdmin ? [userAccount.teamAdmin] : [];
 
             if (!existingAdmins.includes(adminAccount._id)) {
-                userAccount.teamAdmin = [...existingAdmins, adminAccount._id];
+                userAccount.teamAdmin = [existingAdmins, adminAccount._id];
                 userAccount._updatedDate = new Date();
                 await wixData.update('UserAccounts', userAccount, { suppressAuth: true, suppressHooks: true });
             }
