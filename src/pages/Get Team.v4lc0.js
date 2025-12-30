@@ -72,15 +72,13 @@ $w.onReady(async function () {
         }
 
         try {
-            // Update the current UserAccount to link this admin
+            // Update the current UserAccount to link this admin (multi-reference field)
             const existingAdmins = Array.isArray(userAccount.teamAdmin)
                 ? userAccount.teamAdmin.filter(Boolean)
                 : userAccount.teamAdmin ? [userAccount.teamAdmin] : [];
 
             if (!existingAdmins.includes(adminAccount._id)) {
-                userAccount.teamAdmin = [existingAdmins, adminAccount._id];
-                userAccount._updatedDate = new Date();
-                await wixData.update('UserAccounts', userAccount, { suppressAuth: true, suppressHooks: true });
+                await wixData.insertReference('UserAccounts', 'teamAdmin', userAccount._id, adminAccount._id, { suppressAuth: true, suppressHooks: true });
             }
 
             getTeam_Status_Display.text = "Team account connected successfully!";
