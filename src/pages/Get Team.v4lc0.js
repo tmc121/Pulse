@@ -2,6 +2,7 @@
 import wixLocationFrontend from 'wix-location-frontend';
 import wixData from 'wix-data';
 import { currentMember } from 'wix-members-frontend';
+import { getUserAccountByMemberId } from 'public/UserAccounts-Auth';
 
 const getTeam_Disclaimer_DisplayText = $w('#getTeam-Disclaimer-DisplayText');
 const getTeam_AdminUserId_Input = $w('#getTeam-AdminUserId-Input');
@@ -24,8 +25,8 @@ $w.onReady(async function () {
     // Load the current member's UserAccount once
     const member = await currentMember.getMember();
     const memberId = member?._id;
-    const memberAccount = await loadMemberAccount(memberId);
-    if (!memberAccount) {
+    const UserAccount = await getUserAccountByMemberId(memberId);
+    if (!UserAccount) {
         getTeam_Status_Display.text = "We could not load your account. Please re-login.";
         return;
     }
@@ -71,14 +72,14 @@ $w.onReady(async function () {
 
         try {
             // Update the current member's account to link this admin
-            const existingAdmins = Array.isArray(memberAccount.teamAdmin)
-                ? memberAccount.teamAdmin.filter(Boolean)
-                : memberAccount.teamAdmin ? [memberAccount.teamAdmin] : [];
+            const existingAdmins = Array.isArray(UserAccount.teamAdmin)
+                ? UserAccount.teamAdmin.filter(Boolean)
+                : UserAccount.teamAdmin ? [UserAccount.teamAdmin] : [];
 
             if (!existingAdmins.includes(adminAccount._id)) {
-                memberAccount.teamAdmin = [...existingAdmins, adminAccount._id];
-                memberAccount._updatedDate = new Date();
-                await wixData.update('UserAccounts', memberAccount, { suppressAuth: true, suppressHooks: true });
+                UserAccount.teamAdmin = [...existingAdmins, adminAccount._id];
+                UserAccount._updatedDate = new Date();
+                await wixData.update('UserAccounts', UserAccount, { suppressAuth: true, suppressHooks: true });
             }
 
             getTeam_Status_Display.text = "Team account connected successfully!";
