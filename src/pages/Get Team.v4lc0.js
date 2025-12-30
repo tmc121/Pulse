@@ -113,7 +113,7 @@ async function validateAdminUserId(adminUserIdRaw) {
         const results = await wixData
             .query('UserAccounts')
             .eq('userId', adminUserId)
-            .eq('status', 'Active')
+            .eq('accountStatus', 'ACTIVE')
             .eq('adminAccount', true)
             .limit(1)
             .find({ suppressAuth: true, suppressHooks: true });
