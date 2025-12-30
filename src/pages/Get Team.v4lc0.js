@@ -14,7 +14,7 @@ const getTeam_Exit_Button = $w('#getTeam-Exit-Button');
 // Implementation will depend on the specific team service being integrated.
 // Below is a placeholder for where you would add your integration logic.
 // The code will need to query the userAccounts collection to validate a users is an admin the adminAccount field for the adminUserId must be true. The user must match the an adminUsers userid with the input value from adminUserId_Input.
-// Validate the entered admin userId against UserAccounts.adminAccount === true and active status
+// Validate the entered admin userId against a UserAccounts document whose adminAccount is an array of managed userAccountIds
 async function validateAdminUserId(adminUserIdRaw) {
   const adminUserId = (adminUserIdRaw || '').trim();
   if (!adminUserId) {
@@ -27,12 +27,12 @@ async function validateAdminUserId(adminUserIdRaw) {
       .eq('userId', adminUserId)
       .eq('adminAccount', true)
       .eq('status', 'Active')
+      .limit(1)
       .find({ suppressAuth: true, suppressHooks: true });
 
-    if (results.items && results.items.length > 0) {
-      return { isValid: true, account: results.items[0] };
-    }
-    return { isValid: false, account: null };
+    const account = results.items && results.items[0];
+    const isAdmin = Array.isArray(account?.adminAccount) && account.adminAccount.length > 0;
+    return { isValid: !!account && isAdmin, account: isAdmin ? account : null };
   } catch (error) {
     console.error('Error validating admin userId:', error);
     return { isValid: false, account: null };
