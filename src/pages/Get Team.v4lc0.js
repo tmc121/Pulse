@@ -24,7 +24,7 @@ async function validateAdminUserId(adminUserIdRaw) {
   try {
     const results = await wixData
       .query('UserAccounts')
-      .eq('userId', adminUserId)
+      .eq('userId', adminUserId.toLowerCase())
       .eq('adminAccount', true)
       .eq('status', 'Active')
       .limit(1)
