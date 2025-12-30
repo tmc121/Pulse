@@ -25,8 +25,9 @@ $w.onReady(async function () {
     // Load the current member's UserAccount once
     const member = await currentMember.getMember();
     const memberId = member?._id;
-    const UserAccount = await getUserAccountByMemberId(memberId);
-    if (!UserAccount) {
+    const userAccountResult = await getUserAccountByMemberId(memberId);
+    const userAccount = userAccountResult?.account || null;
+    if (!userAccount) {
         getTeam_Status_Display.text = "We could not load your account. Please re-login.";
         return;
     }
@@ -71,15 +72,15 @@ $w.onReady(async function () {
         }
 
         try {
-            // Update the current member's account to link this admin
-            const existingAdmins = Array.isArray(UserAccount.teamAdmin)
-                ? UserAccount.teamAdmin.filter(Boolean)
-                : UserAccount.teamAdmin ? [UserAccount.teamAdmin] : [];
+            // Update the current UserAccount to link this admin
+            const existingAdmins = Array.isArray(userAccount.teamAdmin)
+                ? userAccount.teamAdmin.filter(Boolean)
+                : userAccount.teamAdmin ? [userAccount.teamAdmin] : [];
 
             if (!existingAdmins.includes(adminAccount._id)) {
-                UserAccount.teamAdmin = [...existingAdmins, adminAccount._id];
-                UserAccount._updatedDate = new Date();
-                await wixData.update('UserAccounts', UserAccount, { suppressAuth: true, suppressHooks: true });
+                userAccount.teamAdmin = [...existingAdmins, adminAccount._id];
+                userAccount._updatedDate = new Date();
+                await wixData.update('UserAccounts', userAccount, { suppressAuth: true, suppressHooks: true });
             }
 
             getTeam_Status_Display.text = "Team account connected successfully!";
@@ -102,21 +103,7 @@ function isValidUserIdFormat(value) {
     return /^[A-Za-z]{3}\d{3}$/.test((value || '').trim());
 }
 
-async function loadMemberAccount(memberId) {
-    if (!memberId) return null;
-    try {
-        const results = await wixData.query('UserAccounts')
-            .eq('connectedMemberId', memberId)
-            .limit(1)
-            .find({ suppressAuth: true, suppressHooks: true });
-        return results.items?.[0] || null;
-    } catch (error) {
-        console.error('Error loading member account:', error);
-        return null;
-    }
-}
-
-async function validateAdminUserId(adminUserIdRaw, memberAccountId) {
+async function validateAdminUserId(adminUserIdRaw) {
     const adminUserId = (adminUserIdRaw || '').trim().toUpperCase();
     if (!adminUserId) {
         return { isValid: false, adminAccount: null };
