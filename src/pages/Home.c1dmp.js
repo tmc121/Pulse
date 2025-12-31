@@ -402,9 +402,11 @@ async function setupDashboardManageSection() {
                         await primaryNavigate(primaryMultiState, primary_ManageTeamState);
                         await setManageTeamPage(
                             manageTeam_Close_Button,
+                            manageTeam_EditAccounts_Button,
+                            manageTeam_NewAccount_Button,
                             manageTeam_AccountsRepeater,
-                            manageTeam_Account_Item_CheckBox,
                             manageTeam_AccountDisplay_Item_Button,
+                            manageTeam_Account_Item_CheckBox,
                             manageTeam_SelectedItem_Display_Wrapper,
                             manageTeam_SelectedItem_UserID_Text,
                             manageTeam_SelectedItem_FullName_Text,

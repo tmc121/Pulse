@@ -116,13 +116,14 @@ export async function setManageTeamPage(
             console.warn('Manage Team: admin identifier missing; cannot query team members');
         } else {
             const result = await wixData.query('UserAccounts')
-                .hasSome('teamAdmin', adminAccountId)
+                .hasSome('teamAdmin', [adminAccountId])
                 .find({ suppressAuth: true, suppressHooks: true });
             (result?.items || []).forEach((item) => teamMembers.push(item));
         }
         accountsRepeater.data = teamMembers;
         accountsRepeater.onItemReady(($item, itemData) => {
-            $item('#managerTeam-DisplayAccount-Item-Button').label = `${itemData.firstName} ${itemData.lastName} + '•' +(${itemData.userId.toUpperCase()})`;
+            const userId = itemData.userId ? itemData.userId.toUpperCase() : '';
+            $item('#managerTeam-DisplayAccount-Item-Button').label = `${itemData.firstName} ${itemData.lastName} • ${userId}`;
             $item('#item-Team-CheckBox').checked = false; // Default unchecked
             $item('#managerTeam-DisplayAccount-Item-Button').onClick(() => {
 
