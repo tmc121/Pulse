@@ -100,7 +100,7 @@ export async function setManageTeamPage(
     });
 
     // Additional setup for accountsRepeater and other controls to be implemented later as needed
-    
+
     // THE ACCOUNTS REPEATER DATA WILL BE POPULATED BASED ON THE TEAM MEMBERS LINKED TO THE ADMIN USER ACCOUNT
     const teamMembers = []; // TO BE FILLED WITH TEAM MEMBER DATA FROM USER ACCOUNTS
 
@@ -123,17 +123,32 @@ export async function setManageTeamPage(
         accountsRepeater.data = teamMembers;
         accountsRepeater.onItemReady(($item, itemData) => {
             const userId = itemData.userId ? itemData.userId.toUpperCase() : '';
-            $item('#managerTeam-DisplayAccount-Item-Button').label = `${itemData.firstName} ${itemData.lastName} • ${userId}`;
+            if (itemData.adminAccount === true) {
+                $item('#managerTeam-DisplayAccount-Item-Button').label = `${itemData.firstName} ${itemData.lastName} • ${userId} (Admin)`;
+            } else {
+                $item('#managerTeam-DisplayAccount-Item-Button').label = `${itemData.firstName} ${itemData.lastName} • ${userId}`;
+            }
             $item('#item-Team-CheckBox').checked = false; // Default unchecked
             $item('#managerTeam-DisplayAccount-Item-Button').onClick(() => {
 
                 selectedItemFullNameText.text = `${itemData.firstName} ${itemData.lastName}`;
                 selectedItemUserIDText.text = itemData.userId.toUpperCase();
                 selectedItemEmailText.text = itemData.loginEmail;
-                selectedItemStatusButton.label = `Status: ${itemData.status || 'Unknown'}`;
+                selectedItemStatusButton.label = `Status: ${itemData.accountStatus || 'Unknown'}`;
                 // Additional setup for disable, discard, save buttons to be implemented later
                 selectedItemDisplayWrapper.expand();
-                selectedItemDisableButton.label = itemData.status === 'Disabled' ? 'Enable Account' : 'Disable Account';
+                selectedItemDisableButton.label = itemData.accountStatus === 'Disabled' ? 'Enable Account' : 'Disable Account';
+
+                if (itemData.adminAccount === true) {
+                    selectedItemDisableButton.disable();
+                    selectedItemSaveButton.disable();
+                    selectedItemDiscardButton.disable();
+                } else {
+                    selectedItemDisableButton.enable();
+                    selectedItemSaveButton.enable();
+                    selectedItemDiscardButton.enable();
+                }
+
                 selectedItemDisableButton.onClick(() => {
                     // TO BE IMPLEMENTED LATER
                     console.log(`Toggle disable for account: ${itemData.userId}`);
@@ -145,15 +160,40 @@ export async function setManageTeamPage(
                 selectedItemSaveButton.onClick(() => {
                     // TO BE IMPLEMENTED LATER
                     console.log(`Save changes for account: ${itemData.userId}`);
-                }); 
+                });
+                
             });
         });
     } catch (error) {
         console.error('Error querying team members for Manage Team page:', error);
-        accountsRepeater.data = [];
+        // SHOW DATA TO PLACE IN REPEATER AS EMPTY BUT LET USER KNOW THERE WAS AN ERROR
+        const errorResults = [{
+            firstName: 'Error loading team members',
+            lastName: '',
+            userId: '',
+            loginEmail: '',
+            accountStatus: '',
+            adminAccount: false
+        }];
+        accountsRepeater.data = errorResults;
+        accountsRepeater.onItemReady(($item, itemData) => {
+            $item('#managerTeam-DisplayAccount-Item-Button').label = itemData.firstName;
+            $item('#item-Team-CheckBox').collapse();
+        });
+
+        editAccountsButton.disable();
+        newAccountButton.disable();
+        selectedItemFullNameText.text = '';
+        selectedItemUserIDText.text = '';
+        selectedItemEmailText.text = '';
+        selectedItemStatusButton.text = '-';
+        selectedItemDisableButton.disable();
+        selectedItemDiscardButton.disable();
+        selectedItemSaveButton.disable();
+
     }
 
-  
+
 
 
 }
