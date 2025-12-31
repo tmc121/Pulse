@@ -3,10 +3,13 @@
 
 
 // IMPORTS
-import wixData from 'wix-data';
+import wixData, { get } from 'wix-data';
 import { primaryNavigate } from 'public/appNavigation.js';
 import { getLoggedInMemberId } from 'public/appAuthentication.js';
 import { getUserAccountByMemberId } from 'public/UserAccounts-Auth.js';
+import { authentication } from 'wix-members';
+import { contacts } from 'wix-crm-frontend';
+
 
 
 // THIS FILE WILL CONTAIN ALL FUNCTIONS RELATED TO THE MANAGE TEAM PAGE AND ITS FUNCTIONALITY
@@ -94,6 +97,8 @@ export async function setManageTeamPage(
         try {
             // TO BE IMPLEMENTED LATER
             console.log('New Account button clicked - functionality to be implemented.');
+            primaryNavigate($w('#multiStateBox1'), 'createNewAccount');
+            
         } catch (err) {
             console.error('Failed to handle New Account click', err);
         }
@@ -102,6 +107,18 @@ export async function setManageTeamPage(
     // Additional setup for accountsRepeater and other controls to be implemented later as needed
 
     // THE ACCOUNTS REPEATER DATA WILL BE POPULATED BASED ON THE TEAM MEMBERS LINKED TO THE ADMIN USER ACCOUNT
+
+    // SET INITIALIZATION OF SELECTED ITEM DISPLAY
+    editAccountsButton.disable();
+        newAccountButton.disable();
+        selectedItemFullNameText.text = 'No team member selected';
+        selectedItemUserIDText.text = 'No team member selected';
+        selectedItemEmailText.text = 'No team member selected';
+        selectedItemStatusButton.text = '-';
+        selectedItemDisableButton.collapse();
+        selectedItemDiscardButton.collapse();
+        selectedItemSaveButton.collapse();
+
     const teamMembers = []; // TO BE FILLED WITH TEAM MEMBER DATA FROM USER ACCOUNTS
 
     try {
@@ -187,13 +204,245 @@ export async function setManageTeamPage(
         selectedItemUserIDText.text = '';
         selectedItemEmailText.text = '';
         selectedItemStatusButton.text = '-';
-        selectedItemDisableButton.disable();
-        selectedItemDiscardButton.disable();
-        selectedItemSaveButton.disable();
+        selectedItemDisableButton.collapse();
+        selectedItemDiscardButton.collapse();
+        selectedItemSaveButton.collapse();
 
     }
 
-
+    await createNewAccountPageSetup(
+        $w('#createNewAccount-Close-Button'),
+        $w('#createNewAccount-Reset-Button'),
+        $w('#createNewAccount-FirstName-Input'),
+        $w('#createNewAccount-LastName-Input'),
+        $w('#createNewAccount-UserId-Input'),
+        $w('#createNewAccount-UserID-Status-DisplayText'),
+        $w('#createNewAccount-MemberAccount-Dropdown-Input'),
+        $w('#createNewAccount-Discard-Button'),
+        $w('#createNewAccount-SaveUpdate-Button')
+    );  
 
 
 }
+
+// THIS CODE WILL BE USED TO CREATE A NEW ACCOUNT PAGE FUNCTIONALITY
+// THE FUNCTION WILL ALLOW AN ADMIN USER TO CREATE A NEW MEMBER AND LINK THAT MEMBER TO THE NEW USER ACCOUNT.
+// CONNECT A MEMBER ID TO THE NEW USER ACCOUNT USING THE CONNECTEDMEMBERID FIELD IN THE USER ACCOUNTS COLLECTION
+// BEFORE AN ACCOUNT CAN BE CREATED COMPLETELY THE MEMBER ADDED WILL BE EMAILED A TEMPORARY PASSWORD TO SET THEIR OWN PASSWORD AND COMPLETE THE ACCOUNT SETUP
+// THIS FUNCTION WILL BE CALLED FROM THE MANAGE TEAM PAGE WHEN THE ADMIN CLICKS THE "NEW ACCOUNT" BUTTON
+
+// NEW USERID VALIDATION RULES:
+// MUST BE 6 CHARACTERS LONG
+// FIRST 3 CHARACTERS MUST BE LETTERS (A-Z, a-z)
+// LAST 3 CHARACTERS MUST BE NUMBERS (0-9)
+// EXAMPLE OF A VALID USERID: ABC123
+
+async function validateUserIdFromat(userId) {
+    const userIdTrimmed = (userId || '').trim();
+    const userIdPattern = /^[A-Za-z]{3}\d{3}$/;
+    return userIdPattern.test(userIdTrimmed);
+    //Example Returns true for valid format, false for invalid format
+}
+async function checkIfUserIdExists(userId) {
+    const userIdTrimmed = (userId || '').trim().toUpperCase();
+    if (!userIdTrimmed) {
+        return false;
+    }
+
+    try {
+        const results = await wixData
+            .query('UserAccounts')
+            .eq('userId', userIdTrimmed)
+            .limit(1)
+            .find({ suppressAuth: true, suppressHooks: true });
+
+        return results.items.length > 0;
+    } catch (error) {
+        console.error('Error checking User ID existence:', error);
+        return false;
+    }
+}
+async function checkUserEmailExists(email) {
+    const emailTrimmed = (email || '').trim().toLowerCase();
+    if (!emailTrimmed) {
+        return false;
+    }
+
+    try {
+        const results = await wixData
+            .query('UserAccounts')
+            .eq('loginEmail', emailTrimmed)
+            .limit(1)
+            .find({ suppressAuth: true, suppressHooks: true });
+
+        return results.items.length > 0;
+    } catch (error) {
+        console.error('Error checking email existence:', error);
+        return false;
+    }
+}
+
+// GENERATE A SUGGESTED USER ID BASED ON FULL NAME OF THE USER'S FIRST AND LAST NAME
+async function generateUserIdSuggestion() {
+    const randomNum = Math.floor(100 + Math.random() * 900); // Generate a random 3-digit number
+    const userIdSuggestion = `USR${randomNum}`; // Example format: USR123
+    const exists = await checkIfUserIdExists(userIdSuggestion);
+    if (exists) {
+        // Recursively generate a new suggestion if it already exists
+        return generateUserIdSuggestion();
+    }
+
+    return userIdSuggestion;
+
+}
+async function getMembersForDropdown() {
+    try {
+        const results = await wixData
+            .query('Members')
+            .limit(100)
+            .find({ suppressAuth: true, suppressHooks: true });
+
+        return results.items.map(member => ({
+            label: `${member.firstName} ${member.lastName} (${member.email})`,
+            value: member._id
+        }));
+    } catch (error) {
+        console.error('Error fetching members for dropdown:', error);
+        return [];
+    }
+}
+
+/*
+const createNewAccount_Exit_Button = $w('#createNewAccount-Close-Button');
+const createNewAccount_Reset_Button = $w('#createNewAccount-Reset-Button');
+const createNewAccount_FirstName_Input = $w('#createNewAccount-FirstName-Input');
+const createNewAccount_LastName_Input = $w('#createNewAccount-LastName-Input');
+const createNewAccount_UserId_Input = $w('#createNewAccount-UserId-Input');
+const createNewAccount_Status_DisplayText = $w('#createNewAccount-UserID-Status-DisplayText');
+const createNewAccount_MemberAccountLink_Dropdown_Input = $w('#createNewAccount-MemberAccount-Dropdown-Input');
+const createNewAccount_Discard_Button = $w('#createNewAccount-Discard-Button');
+const createNewAccount_SaveUpdate_Button = $w('#createNewAccount-SaveUpdate-Button');
+*/
+
+async function resetFields(
+    createNewAccount_FirstName_Input,
+    createNewAccount_LastName_Input,
+    createNewAccount_UserId_Input,
+    createNewAccount_Status_DisplayText,
+    createNewAccount_MemberAccountLink_Dropdown_Input
+) {
+    createNewAccount_FirstName_Input.value = '';
+    createNewAccount_LastName_Input.value = '';
+    createNewAccount_UserId_Input.value = await generateUserIdSuggestion();
+    createNewAccount_Status_DisplayText.text = '';
+    createNewAccount_MemberAccountLink_Dropdown_Input.value = '';
+
+    let options = await getMembersForDropdown();
+    createNewAccount_MemberAccountLink_Dropdown_Input.options = options;
+}
+
+async function createNewAccountPageSetup(
+    createNewAccount_Exit_Button,
+    createNewAccount_Reset_Button,
+    createNewAccount_FirstName_Input,
+    createNewAccount_LastName_Input,
+    createNewAccount_UserId_Input,
+    createNewAccount_Status_DisplayText,
+    createNewAccount_MemberAccountLink_Dropdown_Input,
+    createNewAccount_Discard_Button,
+    createNewAccount_SaveUpdate_Button
+) {
+    createNewAccount_Exit_Button.onClick(async () => {
+       primaryNavigate($w('#multiStateBox1'), 'manageTeam');
+    });
+    createNewAccount_Discard_Button.onClick(async () => {
+        await resetFields(
+            createNewAccount_FirstName_Input,
+            createNewAccount_LastName_Input,
+            createNewAccount_UserId_Input,
+            createNewAccount_Status_DisplayText,
+            createNewAccount_MemberAccountLink_Dropdown_Input
+        );
+    });
+
+    createNewAccount_Reset_Button.onClick(async () => {
+        createNewAccount_FirstName_Input.value = '';
+        createNewAccount_LastName_Input.value = '';
+        createNewAccount_UserId_Input.value = await generateUserIdSuggestion();
+        createNewAccount_Status_DisplayText.text = '';
+        createNewAccount_MemberAccountLink_Dropdown_Input.value = '';
+        
+        
+            let options = await getMembersForDropdown();
+            createNewAccount_MemberAccountLink_Dropdown_Input.options = options;
+    
+    });
+
+    createNewAccount_UserId_Input.onInput(async () => {
+        const userIdValue = (createNewAccount_UserId_Input.value || '').trim().toUpperCase();
+        if (!userIdValue) {
+            createNewAccount_Status_DisplayText.text = '';
+            return;
+        }
+validateUserIdFromat(userIdValue).then(async (isValidFormat) => {
+            if (!isValidFormat) {
+                createNewAccount_Status_DisplayText.text = 'Invalid format. Use 3 letters followed by 3 numbers (e.g., ABC123).';
+                return;
+            }
+            const exists = await checkIfUserIdExists(userIdValue);
+            if (exists) {
+                createNewAccount_Status_DisplayText.text = 'User ID already exists. Please choose another.';
+            } else {
+                createNewAccount_Status_DisplayText.text = 'User ID is available.';
+            }
+        });
+    });
+
+    // Additional setup for member account linking dropdown and save/discard buttons to be implemented later
+    console.log('Create New Account page setup - functionality to be implemented.');
+}
+
+
+// SUBMIT NEW ACCOUNT CREATION
+// THIS CODE WILL REGISTER THE NEW MEMBER AND CREATE A USER ACCOUNT WITH THE PROVIDED DETAILS
+// THE NEW USER ACCOUNT WILL BE LINKED TO THE SELECTED MEMBER ID VIA THE CONNECTEDMEMBERID FIELD
+// A TEMPORARY PASSWORD WILL BE GENERATED AND EMAILED TO THE NEW MEMBER'S EMAIL TO COMPLETE THEIR ACCOUNT SETUP
+
+async function submitNewAccountCreation(
+    createNewAccount_FirstName_Input,
+    createNewAccount_LastName_Input,
+    createNewAccount_UserId_Input,
+    createNewAccount_MemberAccountLink_Dropdown_Input
+) {
+    const firstName = (createNewAccount_FirstName_Input.value || '').trim();
+    const lastName = (createNewAccount_LastName_Input.value || '').trim();
+    const userId = (createNewAccount_UserId_Input.value || '').trim().toUpperCase();
+    const memberId = createNewAccount_MemberAccountLink_Dropdown_Input.value;
+
+    if (!firstName || !lastName || !userId || !memberId) {
+        console.warn('Submit New Account Creation: missing required fields.');
+        return;
+    }
+
+    const isValidUserId = await validateUserIdFromat(userId);
+    if (!isValidUserId) {
+        console.warn('Submit New Account Creation: invalid User ID format.');
+        return;
+    }
+
+    const userIdExists = await checkIfUserIdExists(userId);
+    if (userIdExists) {
+        console.warn('Submit New Account Creation: User ID already exists.');
+        return;
+    }
+
+    const emailExists = await checkUserEmailExists(memberId);
+    if (emailExists) {
+        console.warn('Submit New Account Creation: Email already associated with another account.');
+        return;
+    }       
+    // REGISTER THE NEW USER ACCOUNT LOGIC TO BE IMPLEMENTED LATER
+
+    console.log('Submit New Account Creation - functionality to be implemented.');
+}
+
