@@ -109,8 +109,7 @@ export async function setManageTeamPage(
     // THE ACCOUNTS REPEATER DATA WILL BE POPULATED BASED ON THE TEAM MEMBERS LINKED TO THE ADMIN USER ACCOUNT
 
     // SET INITIALIZATION OF SELECTED ITEM DISPLAY
-    editAccountsButton.disable();
-        newAccountButton.disable();
+    
         selectedItemFullNameText.text = 'No team member selected';
         selectedItemUserIDText.text = 'No team member selected';
         selectedItemEmailText.text = 'No team member selected';
@@ -199,7 +198,7 @@ export async function setManageTeamPage(
         });
 
         editAccountsButton.disable();
-        newAccountButton.disable();
+        newAccountButton.enable();
         selectedItemFullNameText.text = '';
         selectedItemUserIDText.text = '';
         selectedItemEmailText.text = '';
