@@ -219,15 +219,11 @@ async function getCurrentUserAccountOption() {
             return null;
         }
 
-        const result = await wixData
-            .query('UserAccounts')
-            .eq('connectedMemberId', memberId)
-            .find({ suppressAuth: true, suppressHooks: true });
-
-        const account = result.items && result.items[0];
+        const wrapper = await getUserAccountByMemberId(memberId);
+        const account = wrapper?.account || null;
         if (account) {
-            const label = `${normalizeValue(account.firstName)} ${normalizeValue(account.lastName)}`.trim() || account.userId || 'Account';
-            const value = account.userId || '';
+            const value = normalizeValue(account.userId || account.userid || '');
+            const label = `${normalizeValue(account.firstName)} ${normalizeValue(account.lastName)}`.trim() || value || 'Account';
             if (value) {
                 return { label, value };
             }
@@ -586,6 +582,53 @@ export async function setupCreateOrEditReference(
         ];
     }
 
+    const getControlValue = (control) => normalizeValue(control?.value);
+    const bindInputOnce = (control, key, handler) => {
+        if (!control || typeof control.onInput !== 'function') {
+            return;
+        }
+        const flag = `_createRefInputBound_${key}`;
+        if (control[flag]) {
+            return;
+        }
+        control[flag] = true;
+        control.onInput(handler);
+    };
+    const bindChangeOnce = (control, key, handler) => {
+        if (!control || typeof control.onChange !== 'function') {
+            return;
+        }
+        const flag = `_createRefChangeBound_${key}`;
+        if (control[flag]) {
+            return;
+        }
+        control[flag] = true;
+        control.onChange(handler);
+    };
+    const updateSubmitButtonState = async () => {
+        if (!submitButton) {
+            return;
+        }
+
+        const hasRef = !!getControlValue(referenceNumberInput);
+        const hasType = !!getControlValue(referenceTypeInput);
+        const hasStatus = !!getControlValue(statusInput);
+        const hasByUser = !!getControlValue(addedByUserInput);
+        const canSubmit = hasRef && hasType && hasStatus && hasByUser;
+
+        if (canSubmit) {
+            if (typeof submitButton.enable === 'function') {
+                submitButton.enable();
+            }
+        } else if (typeof submitButton.disable === 'function') {
+            submitButton.disable();
+        }
+    };
+
+    if (submitButton && typeof submitButton.disable === 'function') {
+        submitButton.disable();
+    }
+
     const populateFromExisting = async (refNumber) => {
         // Query DemoData for the latest matching reference entry
         const query = await wixData
@@ -674,22 +717,26 @@ export async function setupCreateOrEditReference(
             if (currentUserOption) {
                 addedByUserInput.options = [currentUserOption];
                 addedByUserInput.value = currentUserOption.value;
+                await createDataset.setFieldValue('addedByUser', currentUserOption.value);
             } else {
                 addedByUserInput.options = [{ label: 'Not available', value: '' }];
                 addedByUserInput.value = '';
+                await createDataset.setFieldValue('addedByUser', '');
             }
             if (addedByUserInput.enable) {
                 addedByUserInput.enable();
             }
         }
+
+        await updateSubmitButtonState();
     };
 
     // Set up reference number input handler to load existing data when reference number is entered
     // Use direct onChange to ensure it always works
-    if (referenceNumberInput && typeof referenceNumberInput.onInput === 'function') {
-        referenceNumberInput.onInput(async () => {
+    bindInputOnce(referenceNumberInput, 'referenceNumber', async () => {
             try {
                 const refNumber = referenceNumberInput?.value?.toString().trim() || '';
+                await createDataset.setFieldValue('referenceNumber', refNumber);
 
                 if (refNumber) {
                     const found = await populateFromExisting(refNumber);
@@ -699,11 +746,12 @@ export async function setupCreateOrEditReference(
                 } else {
                     await setupNewEntry('');
                 }
+
+                await updateSubmitButtonState();
             } catch (error) {
                 console.error('Error in reference number onChange:', error);
             }
         });
-    }
 
     // Initial setup - check if there's already a reference number
     const initialRefNumber = referenceNumberInput?.value?.toString().trim() || '';
@@ -717,36 +765,41 @@ export async function setupCreateOrEditReference(
     }
 
     //SET UP TYPE FILTER DROPDOWN
-    if (referenceTypeInput && typeof referenceTypeInput.onChange === 'function') {
-        referenceTypeInput.onChange(async () => {
+    bindChangeOnce(referenceTypeInput, 'referenceType', async () => {
             const typeValue = referenceTypeInput.value;
             if (typeValue) {
                 await createDataset.setFieldValue('referenceType', typeValue);
+            } else {
+                await createDataset.setFieldValue('referenceType', '');
             }
+            await updateSubmitButtonState();
         });
-    }
 
     //SET UP STATUS FILTER DROPDOWN
-    if (statusInput && typeof statusInput.onChange === 'function') {
-        statusInput.onChange(async () => {
+    bindChangeOnce(statusInput, 'status', async () => {
             const statusValue = statusInput.value;
             if (statusValue) {
                 await createDataset.setFieldValue('status', statusValue);
+            } else {
+                await createDataset.setFieldValue('status', '');
             }
+            await updateSubmitButtonState();
         });
-    }
 
     //SET UP ADDED BY USER FILTER DROPDOWN
     //WILL GET THE OF THE CURRENT USER LOGGED IN AND SET IT AS THE ADDED BY USER VALUE
     //EXAMPLE: ABC123 
-    if (addedByUserInput && typeof addedByUserInput.onChange === 'function') {
-        addedByUserInput.onChange(async () => {
+    bindChangeOnce(addedByUserInput, 'addedByUser', async () => {
             const byUserValue = addedByUserInput.value;
             if (byUserValue) {
                 await createDataset.setFieldValue('addedByUser', byUserValue);
+            } else {
+                await createDataset.setFieldValue('addedByUser', '');
             }
+            await updateSubmitButtonState();
         });
-    }
+
+    await updateSubmitButtonState();
 
     //SET UP SUBMIT BUTTON FUNCTIONALITY
     if (submitButton && typeof submitButton.onClick === 'function') {
