@@ -249,7 +249,10 @@ export async function initializeSearch(
     selectedDataset,
     onReferenceSelect
 ) {
+    let latestSearchRun = 0;
+
     const applySearchFilters = async () => {
+        const runId = ++latestSearchRun;
         const ids = await fetchLatestByReference({
             searchValue: searchInput?.value,
             typeValue: searchTypeInput?.value,
@@ -257,6 +260,9 @@ export async function initializeSearch(
             byUserValue: searchByUserInput?.value,
         });
 
+        if (runId !== latestSearchRun) {
+            return;
+        }
         await applyIdsToDataset(searchDataset, ids);
     };
 
@@ -327,6 +333,8 @@ export async function initializeSearch(
     }
     
     await applySearchFilters();
+
+    return applySearchFilters;
 
 }
 

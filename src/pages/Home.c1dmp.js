@@ -52,6 +52,7 @@ const searchByUserInput = $w('#searchData-ByUserDropdown-Input');
 const searchSubmitButton = $w('#searchData-Submit-SearchButton');
 const searchResults_Table = $w('#table2');
 let searchInputDebounce;
+let runSearchFilters = null;
 
 // SELECTED REFERENCE DATA STATE CONSTANTS 
 // THIS CODE IS USED WHEN AN ITEM FROM A TABLE IS SELECTED THE ITEMS FIELD referenceNumber will be queried to retrieve the path of the referencedNumber added to the collection.
@@ -251,6 +252,18 @@ await loadUserAccountPageData(
     myAccount_UpdatePassword_Button,
     myAccount_Exit_Button,
     primaryMultiState);
+
+    runSearchFilters = await initializeSearch(search_Dataset,
+        searchResults_Table,
+        searchInput,
+        searchTypeInput,
+        searchStatusInput,
+        searchByUserInput,
+        selectedReferenced_Dataset,
+        async (referenceNumber) => {
+            selectedReferenced_ReferenceNumber_Display.text = referenceNumber ? `${referenceNumber}` : 'Reference: N/A';
+            await primaryNavigate(primaryMultiState, primary_ReferencedPathState);
+        });
     
     // SEARCH ON INPUT (debounced to avoid rapid state flips)
     searchInput.onInput(() => {
@@ -259,18 +272,9 @@ await loadUserAccountPageData(
         }
         searchInputDebounce = setTimeout(async () => {
             await primaryNavigate(primaryMultiState, primary_SearchState);
-            await initializeSearch(search_Dataset,
-                searchResults_Table,
-                searchInput,
-                searchTypeInput,
-                searchStatusInput,
-                searchByUserInput,
-                selectedReferenced_Dataset,
-                async (referenceNumber) => {
-                    // Update the reference display and navigate to the reference path state
-                    selectedReferenced_ReferenceNumber_Display.text = referenceNumber ? `${referenceNumber}` : 'Reference: N/A';
-                    await primaryNavigate(primaryMultiState, primary_ReferencedPathState);
-                });
+            if (typeof runSearchFilters === 'function') {
+                await runSearchFilters();
+            }
         }, 250); // Adjust debounce delay as needed
     });
 
@@ -285,18 +289,9 @@ mainMenu_Dashboard_Button.onClick( async () => {
 // SEARCH BUTTON
 mainMenu_Search_Button.onClick( async () => {
     await primaryNavigate(primaryMultiState, primary_SearchState);
-    await initializeSearch(search_Dataset,
-        searchResults_Table,
-        searchInput,
-        searchTypeInput,
-        searchStatusInput,
-        searchByUserInput,
-        selectedReferenced_Dataset,
-        async (referenceNumber) => {
-            // Update the reference display and navigate to the reference path state
-            selectedReferenced_ReferenceNumber_Display.text = referenceNumber ? `${referenceNumber}` : 'Reference: N/A';
-            await primaryNavigate(primaryMultiState, primary_ReferencedPathState);
-        });
+    if (typeof runSearchFilters === 'function') {
+        await runSearchFilters();
+    }
 });
 // SEARCH SUBMIT BUTTON (single handler)
 searchSubmitButton.onClick( async () => {

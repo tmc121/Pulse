@@ -19,10 +19,38 @@ import { primaryNavigate, reportsNavigate } from 'public/appNavigation';
 // The multistateBox and progressBar parameters are required;
 
 const REPORT_PAGE_SIZE = 1000;
+const REPORT_MENU_OPTIONS = [
+    { label: 'In Not Received', value: 'inNotReceived' },
+    { label: 'Not Delivered', value: 'notDelivered' },
+    { label: 'All Inbound', value: 'allInbound' },
+];
 
 // Avoid stacking multiple dropdown handlers across report calls
 let reportsDropdownBound = false;
 let reportsDropdownCtx = null;
+let latestReportRunId = 0;
+
+function beginReportRun() {
+    latestReportRunId += 1;
+    return latestReportRunId;
+}
+
+function isCurrentReportRun(runId) {
+    return runId === latestReportRunId;
+}
+
+function setReportsMenuSelection(reportsInMenuDropdown, selectedValue) {
+    if (!reportsInMenuDropdown) {
+        return;
+    }
+
+    if (!reportsInMenuDropdown._reportsOptionsInitialized) {
+        reportsInMenuDropdown.options = REPORT_MENU_OPTIONS;
+        reportsInMenuDropdown._reportsOptionsInitialized = true;
+    }
+
+    reportsInMenuDropdown.value = selectedValue;
+}
 
 async function fetchLatestByReference({ searchValue = '', typeValue = '', statusValue = '', byUserValue = '', statusExclusion = '' } = {}) {
     const opts = { suppressAuth: true, suppressHooks: true };
@@ -244,8 +272,14 @@ export async function reportsInNotReceived(reportsDataset,
     reportsMultiState,
     reportsLoadingProgressBar) {
 
+    const runId = beginReportRun();
+
     await primaryNavigate(primaryMultiState, 'reportsMain1');
     await reportsNavigate(reportsMultiState, 'reportsData', reportsLoadingProgressBar);
+
+    if (!isCurrentReportRun(runId)) {
+        return 0;
+    }
 
     const searchValue = (reportsFilterSearch_Input?.value || '').trim();
 
@@ -254,16 +288,19 @@ export async function reportsInNotReceived(reportsDataset,
         statusExclusion: 'Inbound Received',
     });
 
+    if (!isCurrentReportRun(runId)) {
+        return 0;
+    }
+
     const ids = items.map((item) => item._id).filter(Boolean);
     await applyIdsToDataset(reportsDataset, ids);
     await sortDatasetByNewest(reportsDataset);
 
-    reportsInMenuDropdown.options = [
-        { label: 'In Not Received', value: 'inNotReceived' },
-        { label: 'Not Delivered', value: 'notDelivered' },
-        { label: 'All Inbound', value: 'allInbound' },
-    ];
-    reportsInMenuDropdown.value = 'inNotReceived';
+    if (!isCurrentReportRun(runId)) {
+        return 0;
+    }
+
+    setReportsMenuSelection(reportsInMenuDropdown, 'inNotReceived');
 
     ensureReportsDropdownHandler({
         reportsDataset,
@@ -295,8 +332,14 @@ export async function reportsNotDelivered(reportsDataset,
     reportsMultiState,
     reportsLoadingProgressBar) {
 
+    const runId = beginReportRun();
+
     await primaryNavigate(primaryMultiState, 'reportsMain1');
     await reportsNavigate(reportsMultiState, 'reportsData', reportsLoadingProgressBar);
+
+    if (!isCurrentReportRun(runId)) {
+        return 0;
+    }
 
     const searchValue = (reportsFilterSearch_Input?.value || '').trim();
 
@@ -304,16 +347,19 @@ export async function reportsNotDelivered(reportsDataset,
         searchValue,
     });
 
+    if (!isCurrentReportRun(runId)) {
+        return 0;
+    }
+
     const ids = items.map((item) => item._id).filter(Boolean);
     await applyIdsToDataset(reportsDataset, ids);
     await sortDatasetByNewest(reportsDataset);
 
-    reportsInMenuDropdown.options = [
-        { label: 'In Not Received', value: 'inNotReceived' },
-        { label: 'Not Delivered', value: 'notDelivered' },
-        { label: 'All Inbound', value: 'allInbound' },
-    ];
-    reportsInMenuDropdown.value = 'notDelivered';
+    if (!isCurrentReportRun(runId)) {
+        return 0;
+    }
+
+    setReportsMenuSelection(reportsInMenuDropdown, 'notDelivered');
 
     ensureReportsDropdownHandler({
         reportsDataset,
@@ -344,8 +390,14 @@ export async function reportsAllInbound(reportsDataset,
     reportsMultiState,
     reportsLoadingProgressBar) {
 
+    const runId = beginReportRun();
+
     await primaryNavigate(primaryMultiState, 'reportsMain1');
     await reportsNavigate(reportsMultiState, 'reportsData', reportsLoadingProgressBar);
+
+    if (!isCurrentReportRun(runId)) {
+        return 0;
+    }
 
     // Show all items; ignore any search input so the full deduped set is returned.
     const items = await fetchLatestByReference({
@@ -353,16 +405,19 @@ export async function reportsAllInbound(reportsDataset,
         statusExclusion: null,
     });
 
+    if (!isCurrentReportRun(runId)) {
+        return 0;
+    }
+
     const ids = items.map((item) => item._id).filter(Boolean);
     await applyIdsToDataset(reportsDataset, ids);
     await sortDatasetByNewest(reportsDataset);
 
-    reportsInMenuDropdown.options = [
-        { label: 'In Not Received', value: 'inNotReceived' },
-        { label: 'Not Delivered', value: 'notDelivered' },
-        { label: 'All Inbound', value: 'allInbound' },
-    ];
-    reportsInMenuDropdown.value = 'allInbound';
+    if (!isCurrentReportRun(runId)) {
+        return 0;
+    }
+
+    setReportsMenuSelection(reportsInMenuDropdown, 'allInbound');
 
     ensureReportsDropdownHandler({
         reportsDataset,

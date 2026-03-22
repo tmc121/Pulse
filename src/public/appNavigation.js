@@ -7,6 +7,12 @@
 //IMPORTS
 import wixLocationFrontend from 'wix-location-frontend';
 
+const reportsIntervalByBar = new WeakMap();
+
+function delay(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 
 
 
@@ -36,10 +42,10 @@ export async function primaryNavigate(multistateBox, state) {
         console.warn('primaryNavigate missing multistateBox');
         return;
     }
+
     await multistateBox.changeState('loadingMain1'); // Optional: Show loading state before changing to the desired state
-    setTimeout(async () => {
-        await multistateBox.changeState(state);
-    }, 500); // Adjust the delay time (in milliseconds) as needed
+    await delay(500);
+    await multistateBox.changeState(state);
 } 
 
 // THIS FUNCTION WILL NAVIGATE THE REPORTS MULTISTATE BOX TO THE DESIRED STATE
@@ -48,24 +54,34 @@ export async function reportsNavigate(multistateBox, state, reportsLoadingProgre
         console.warn('reportsNavigate missing multistateBox');
         return;
     }
-    await multistateBox.changeState('reportsLoading'); // Optional: Show loading state before changing to the desired state
-    setTimeout(async () => {
-        await multistateBox.changeState(state);
-        if (!reportsLoadingProgressBar || typeof reportsLoadingProgressBar.value !== 'number') {
-            return;
+
+    if (reportsLoadingProgressBar) {
+        const existingInterval = reportsIntervalByBar.get(reportsLoadingProgressBar);
+        if (existingInterval) {
+            clearInterval(existingInterval);
         }
-        // Capture the interval ID
+        reportsLoadingProgressBar.value = 0;
+    }
+
+    await multistateBox.changeState('reportsLoading'); // Optional: Show loading state before changing to the desired state
+    await delay(1000);
+    await multistateBox.changeState(state);
+
+    if (!reportsLoadingProgressBar || typeof reportsLoadingProgressBar.value !== 'number') {
+        return;
+    }
+
+    await new Promise((resolve) => {
         const intervalId = setInterval(() => {
-            // Increment safely without exceeding 100
-            reportsLoadingProgressBar.value = Math.min(
-                (reportsLoadingProgressBar.value || 0) + 20,
-                100
-            );
+            reportsLoadingProgressBar.value = Math.min((reportsLoadingProgressBar.value || 0) + 20, 100);
             if (reportsLoadingProgressBar.value >= 100) {
                 clearInterval(intervalId);
+                reportsIntervalByBar.delete(reportsLoadingProgressBar);
+                resolve();
             }
         }, 200);
-    }, 1000); // Adjust the delay time (in milliseconds) as needed  
+        reportsIntervalByBar.set(reportsLoadingProgressBar, intervalId);
+    });
  
 }
 
