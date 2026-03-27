@@ -626,17 +626,15 @@ export async function setupCreateOrEditReference(
             return;
         }
         const cleanValue = normalizeValue(value);
-        let options = [
-            { label: '-', value: '' },
-            ...baseByUserOptions,
-        ];
-        options = uniqueOptions(options);
+        // Run dedup only on the real user list; add blank placeholder separately
+        // because uniqueOptions filters out empty-value entries.
+        const deduped = uniqueOptions(baseByUserOptions);
 
-        if (cleanValue && !options.some((opt) => normalizeValue(opt.value) === cleanValue)) {
-            options.unshift({ label: cleanValue, value: cleanValue });
+        if (cleanValue && !deduped.some((opt) => normalizeValue(opt.value) === cleanValue)) {
+            deduped.unshift({ label: cleanValue, value: cleanValue });
         }
 
-        addedByUserInput.options = options;
+        addedByUserInput.options = [{ label: '-', value: '' }, ...deduped];
         addedByUserInput.value = cleanValue;
     };
 
@@ -746,6 +744,12 @@ export async function setupCreateOrEditReference(
     };
 
     const setupNewEntry = async (refNumber) => {
+        // Fetch the current user BEFORE dataset.new() so we can immediately lock
+        // the addedByUser field after the dataset resets connected inputs.
+        const currentUserOption = addedByUserInput
+            ? await getCurrentUserAccountOption()
+            : null;
+
         if (typeof createDataset.setFilter === 'function') {
             await createDataset.setFilter(wixData.filter());
         }
@@ -755,6 +759,13 @@ export async function setupCreateOrEditReference(
         if (typeof createDataset.new === 'function') {
             await createDataset.new();
         }
+
+        // Immediately pin the addedByUser value in the dataset right after new(),
+        // before any other awaits that could let the reactive reset propagate.
+        if (currentUserOption?.value) {
+            await createDataset.setFieldValue('addedByUser', currentUserOption.value);
+        }
+
         if (refNumber) {
             await createDataset.setFieldValue('referenceNumber', refNumber);
         }
@@ -773,16 +784,17 @@ export async function setupCreateOrEditReference(
         }
 
         if (addedByUserInput) {
-            const currentUserOption = await getCurrentUserAccountOption();
             if (currentUserOption) {
                 setAddedByUserOptions(currentUserOption.value);
-                await createDataset.setFieldValue('addedByUser', currentUserOption.value);
+                // Disable so the field stays locked to the logged-in user for new entries.
+                if (typeof addedByUserInput.disable === 'function') {
+                    addedByUserInput.disable();
+                }
             } else {
                 setAddedByUserOptions('');
-                await createDataset.setFieldValue('addedByUser', '');
-            }
-            if (addedByUserInput.enable) {
-                addedByUserInput.enable();
+                if (typeof addedByUserInput.enable === 'function') {
+                    addedByUserInput.enable();
+                }
             }
         }
 
@@ -866,30 +878,33 @@ export async function setupCreateOrEditReference(
             const refNumber = referenceNumberInput?.value?.toString().trim() || '';
             const typeValue = referenceTypeInput?.value || '';
             const statusValue = statusInput?.value || '';
-            const addedByUserValue = addedByUserInput?.value || '';
             const currentDate = new Date();
-            
+
             if (refNumber) {
                 await createDataset.setFieldValue('referenceNumber', refNumber);
             }
-            
+
             if (typeValue) {
                 await createDataset.setFieldValue('referenceType', typeValue);
             }
-            
+
             if (statusValue) {
                 await createDataset.setFieldValue('status', statusValue);
             }
 
+            // Always re-source addedByUser from the logged-in user at save time
+            // as a safety net in case the dropdown value was ever reset by the dataset.
+            const saveUserOption = await getCurrentUserAccountOption();
+            const addedByUserValue = saveUserOption?.value || addedByUserInput?.value || '';
             if (addedByUserValue) {
                 await createDataset.setFieldValue('addedByUser', addedByUserValue);
             }
-            
+
             // Set update date to current timestamp
             await createDataset.setFieldValue('updateDate', currentDate);
-            
+
             await createDataset.save();
-            // Optionally, you can add code here to navigate away or show a success message 
+            // Optionally, you can add code here to navigate away or show a success message
         });
     }
 }
