@@ -52,6 +52,15 @@ function setReportsMenuSelection(reportsInMenuDropdown, selectedValue) {
     reportsInMenuDropdown.value = selectedValue;
 }
 
+function normalizedStatus(item) {
+    return (item?.status || '').toString().trim();
+}
+
+function itemDateMs(item) {
+    const d = new Date(item?.updateDate || item?._updatedDate || item?._createdDate || 0);
+    return Number.isNaN(d.getTime()) ? 0 : d.getTime();
+}
+
 async function fetchLatestByReference({ searchValue = '', typeValue = '', statusValue = '', byUserValue = '', statusExclusion = '' } = {}) {
     const opts = { suppressAuth: true, suppressHooks: true };
     let query = wixData
@@ -183,6 +192,68 @@ async function fetchNotDeliveredAfterReceived({ searchValue = '', typeValue = ''
     return notDeliveredItems;
 }
 
+async function fetchInNotReceivedByFirstStatus({ searchValue = '', typeValue = '', byUserValue = '' } = {}) {
+    const opts = { suppressAuth: true, suppressHooks: true };
+    let query = wixData
+        .query('DemoData')
+        .ne('referenceNumber', '')
+        .isNotEmpty('referenceNumber')
+        .ascending('updateDate')
+        .ascending('_updatedDate')
+        .ascending('_createdDate');
+
+    if (searchValue) {
+        query = query.contains('referenceNumber', searchValue);
+    }
+    if (typeValue) {
+        query = query.eq('referenceType', typeValue);
+    }
+    if (byUserValue) {
+        query = query.eq('addedByUser', byUserValue);
+    }
+
+    let results = await query.limit(REPORT_PAGE_SIZE).find(opts);
+
+    const referenceSequences = new Map();
+    const processItems = (items) => {
+        (items || []).forEach((item) => {
+            const ref = item.referenceNumber ? item.referenceNumber.trim() : '';
+            if (!ref) {
+                return;
+            }
+            if (!referenceSequences.has(ref)) {
+                referenceSequences.set(ref, []);
+            }
+            referenceSequences.get(ref).push(item);
+        });
+    };
+
+    processItems(results.items);
+    while (results.hasNext()) {
+        results = await results.next();
+        processItems(results.items);
+    }
+
+    const inNotReceivedItems = [];
+
+    for (const items of referenceSequences.values()) {
+        if (!items || items.length === 0) {
+            continue;
+        }
+
+        items.sort((a, b) => itemDateMs(a) - itemDateMs(b));
+
+        const firstStatus = normalizedStatus(items[0]);
+        const latestItem = items[items.length - 1];
+
+        if (firstStatus !== 'Inbound Received' && latestItem) {
+            inNotReceivedItems.push(latestItem);
+        }
+    }
+
+    return inNotReceivedItems;
+}
+
 async function applyIdsToDataset(dataset, ids) {
     if (!dataset || typeof dataset.setFilter !== 'function') {
         return;
@@ -283,9 +354,8 @@ export async function reportsInNotReceived(reportsDataset,
 
     const searchValue = (reportsFilterSearch_Input?.value || '').trim();
 
-    const items = await fetchLatestByReference({
+    const items = await fetchInNotReceivedByFirstStatus({
         searchValue,
-        statusExclusion: 'Inbound Received',
     });
 
     if (!isCurrentReportRun(runId)) {

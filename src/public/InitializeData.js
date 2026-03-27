@@ -187,6 +187,45 @@ function updateReferenceDisplay(referenceDisplay, referenceNumber) {
     referenceDisplay.text = refText ? `Reference: ${refText}` : 'Reference: N/A';
 }
 
+function uniqueOptions(options = []) {
+    const seen = new Set();
+    const out = [];
+    for (const option of options) {
+        const value = normalizeValue(option?.value);
+        if (!value || seen.has(value)) {
+            continue;
+        }
+        seen.add(value);
+        out.push({ label: normalizeValue(option?.label) || value, value });
+    }
+    return out;
+}
+
+async function getAllUserAccountOptions() {
+    try {
+        const result = await wixData
+            .query('UserAccounts')
+            .limit(1000)
+            .find({ suppressAuth: true, suppressHooks: true });
+
+        const options = (result.items || []).map((acct) => {
+            const userId = normalizeValue(acct?.userId || acct?.userid || '');
+            const fullName = `${normalizeValue(acct?.firstName)} ${normalizeValue(acct?.lastName)}`.trim();
+            if (!userId) {
+                return null;
+            }
+            const label = fullName ? `${fullName} (${userId})` : userId;
+            return { label, value: userId };
+        }).filter(Boolean);
+
+        options.sort((a, b) => a.label.localeCompare(b.label));
+        return uniqueOptions(options);
+    } catch (error) {
+        console.error('Error loading UserAccounts options:', error);
+        return [];
+    }
+}
+
 async function getUserOptionByUserId(userId) {
     const cleanId = normalizeValue(userId);
     if (!cleanId) {
@@ -246,6 +285,7 @@ export async function initializeSearch(
     onReferenceSelect
 ) {
     let latestSearchRun = 0;
+    const userOptions = await getAllUserAccountOptions();
 
     const applySearchFilters = async () => {
         const runId = ++latestSearchRun;
@@ -324,7 +364,8 @@ export async function initializeSearch(
 
     if (searchByUserInput && searchByUserInput.options !== undefined) {
         searchByUserInput.options = [
-            { label: 'Not available', value: '' },
+            { label: '-', value: '' },
+            ...userOptions,
         ];
     }
     
@@ -343,6 +384,7 @@ export async function initializeSearchSelected(
     filterByUserDropdown
 ) {
     let isSyncingSelected = false;
+    const userOptions = await getAllUserAccountOptions();
 
     const setDropdownValueAndDisable = (dropdown, value, fallbackLabel = '') => {
         if (!dropdown || dropdown.options === undefined) {
@@ -497,7 +539,8 @@ export async function initializeSearchSelected(
     if (filterByUserDropdown && filterByUserDropdown.options !== undefined) {
         const current = filterByUserDropdown.value;
         let byUserOptions = [
-            { label: 'Not available', value: '' },
+            { label: '-', value: '' },
+            ...userOptions,
         ];
         byUserOptions = ensureOption(byUserOptions, current, current);
         filterByUserDropdown.options = byUserOptions;
@@ -576,10 +619,29 @@ export async function setupCreateOrEditReference(
         ];
     }
 
-    if (addedByUserInput && addedByUserInput.options !== undefined) {
-        addedByUserInput.options = [
-            { label: 'Not available', value: '' },
+    const baseByUserOptions = await getAllUserAccountOptions();
+
+    const setAddedByUserOptions = (value = '') => {
+        if (!addedByUserInput || addedByUserInput.options === undefined) {
+            return;
+        }
+        const cleanValue = normalizeValue(value);
+        let options = [
+            { label: '-', value: '' },
+            ...baseByUserOptions,
         ];
+        options = uniqueOptions(options);
+
+        if (cleanValue && !options.some((opt) => normalizeValue(opt.value) === cleanValue)) {
+            options.unshift({ label: cleanValue, value: cleanValue });
+        }
+
+        addedByUserInput.options = options;
+        addedByUserInput.value = cleanValue;
+    };
+
+    if (addedByUserInput && addedByUserInput.options !== undefined) {
+        setAddedByUserOptions('');
     }
 
     const getControlValue = (control) => normalizeValue(control?.value);
@@ -671,11 +733,9 @@ export async function setupCreateOrEditReference(
         if (addedByUserInput) {
             const userOption = await getUserOptionByUserId(currentItem?.addedByUser);
             if (userOption) {
-                addedByUserInput.options = [userOption];
-                addedByUserInput.value = userOption.value;
+                setAddedByUserOptions(userOption.value);
             } else {
-                addedByUserInput.options = [{ label: 'Not available', value: '' }];
-                addedByUserInput.value = '';
+                setAddedByUserOptions('');
             }
             if (addedByUserInput.enable) {
                 addedByUserInput.enable();
@@ -715,12 +775,10 @@ export async function setupCreateOrEditReference(
         if (addedByUserInput) {
             const currentUserOption = await getCurrentUserAccountOption();
             if (currentUserOption) {
-                addedByUserInput.options = [currentUserOption];
-                addedByUserInput.value = currentUserOption.value;
+                setAddedByUserOptions(currentUserOption.value);
                 await createDataset.setFieldValue('addedByUser', currentUserOption.value);
             } else {
-                addedByUserInput.options = [{ label: 'Not available', value: '' }];
-                addedByUserInput.value = '';
+                setAddedByUserOptions('');
                 await createDataset.setFieldValue('addedByUser', '');
             }
             if (addedByUserInput.enable) {
@@ -858,7 +916,8 @@ export async function insertNewDemoDataItem(
         console.error('No logged in member found. Cannot insert new DemoData item.');
         return;
     }
-    const userAccount = await getUserAccountByMemberId(await loggedInMember._id);
+    const accountResult = await getUserAccountByMemberId(await loggedInMember._id);
+    const userAccount = accountResult?.account || null;
     if (!userAccount) {
         console.error('No user account found for the logged in member. Cannot insert new DemoData item.');
         return;
