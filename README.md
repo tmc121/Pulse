@@ -1,3 +1,27 @@
+## Problem
+The tool for creating new package tracking entries does not allow the currently logged-in user to populate as the user for new entries.
+
+Currently, new tracking entries can only be added through the backend CMS. This limits user flexibility and prevents users from adding new tracking numbers directly via the tool interface.
+
+ #Expected Behavior
+When creating a new package tracking entry, the tool should automatically use the logged-in user as the entry creator.
+The UI should allow users to add new tracking numbers directly (not just through the CMS).
+
+# Proposed Solution
+Update the package tracking creation tool to:
+Populate the logged-in user as the creator by default.
+Allow new tracking numbers to be submitted and added to the system from the tool interface.
+Ensure proper validation and feedback for user submissions.
+
+# Acceptance Criteria
+Users can add new tracking numbers from the tool interface.
+The logged-in user is recorded as the creator for each new entry.
+Entries are no longer limited to being created via the backend CMS.
+
+Labels: bug, enhancement
+Assignee: tmc121
+
+
 # Git Integration & Wix CLI <img align="left" src="https://user-images.githubusercontent.com/89579857/185785022-cab37bf5-26be-4f11-85f0-1fac63c07d3b.png">
 
 This repo is part of Git Integration & Wix CLI, a set of tools that allows you to write, test, and publish code for your Wix site locally on your computer. 
