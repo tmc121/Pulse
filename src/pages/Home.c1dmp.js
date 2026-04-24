@@ -51,7 +51,9 @@ const searchStatusInput = $w('#searchData-StatusDropdown-Input');
 const searchByUserInput = $w('#searchData-ByUserDropdown-Input');
 const searchSubmitButton = $w('#searchData-Submit-SearchButton');
 const searchResults_Table = $w('#table2');
+/** @type {ReturnType<typeof setTimeout> | undefined} */
 let searchInputDebounce;
+/** @type {null | (() => Promise<void>)} */
 let runSearchFilters = null;
 
 // SELECTED REFERENCE DATA STATE CONSTANTS 
@@ -67,8 +69,21 @@ const selectedReferenced_Filter_ByUser_Dropdown = $w('#referencePath-Filter-Refe
 
 
 // Wait for all datasets to be ready before wiring handlers that depend on them
+/**
+ * @typedef {{ onReady: () => Promise<unknown> }} ReadyDataset
+ */
+
+/**
+ * @param {Array<ReadyDataset | null | undefined>} datasets
+ * @param {number} timeoutMs
+ */
 async function waitForDatasetsReady(datasets, timeoutMs = 8000) {
-    const readyPromises = (datasets || []).filter(Boolean).map((dataset) => dataset.onReady());
+    const readyPromises = [];
+    for (const dataset of (datasets || [])) {
+        if (dataset && typeof dataset.onReady === 'function') {
+            readyPromises.push(dataset.onReady());
+        }
+    }
     const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Datasets not ready before timeout')), timeoutMs));
     await Promise.race([Promise.all(readyPromises), timeout]);
 }
@@ -260,6 +275,7 @@ await loadUserAccountPageData(
         searchStatusInput,
         searchByUserInput,
         selectedReferenced_Dataset,
+        /** @param {string | number | null | undefined} referenceNumber */
         async (referenceNumber) => {
             selectedReferenced_ReferenceNumber_Display.text = referenceNumber ? `${referenceNumber}` : 'Reference: N/A';
             await primaryNavigate(primaryMultiState, primary_ReferencedPathState);
