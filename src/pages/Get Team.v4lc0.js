@@ -97,10 +97,12 @@ $w.onReady(async function () {
     });
 });
 
+/** @param {string | null | undefined} value */
 function isValidUserIdFormat(value) {
     return /^[A-Za-z]{3}\d{3}$/.test((value || '').trim());
 }
 
+/** @param {string | null | undefined} adminUserIdRaw */
 async function validateAdminUserId(adminUserIdRaw) {
     const adminUserId = (adminUserIdRaw || '').trim().toUpperCase();
     if (!adminUserId) {
