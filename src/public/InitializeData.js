@@ -908,17 +908,18 @@ export async function insertNewDemoDataItem(
         toInsert.referenceNumber = referenceNumberInput.value || '';
     }
     if (referenceTypeInput) {
-        toInsert.referenceType = referenceTypeInput.value || '';
+        toInsert.type = referenceTypeInput.value || '';
     }
     if (statusInput) {
         toInsert.status = statusInput.value || '';
     }
     if (addedByUserInput) {
-        toInsert.addedByUser = addedByUserInput.value || '';
+        toInsert.byUser = addedByUserInput.value || '';
+        toInsert.createdByName = userAccount_Name || '';
     }
 
-    // Set the update date to current timestamp
-    toInsert.updateDate = new Date();
+    // Set the Created date to current timestamp
+    toInsert.createdAt = new Date(); // Format date as (2025-12-28T08:50:19.353Z);
 
     try {
         const result = await wixData.insert('DemoData', toInsert, { suppressAuth: true, suppressHooks: true });
