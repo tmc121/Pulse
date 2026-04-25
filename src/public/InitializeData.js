@@ -11,6 +11,18 @@ function normalizeValue(value) {
     return typeof value === 'string' ? value.trim() : value || '';
 }
 
+function itemTypeValue(item) {
+    return normalizeValue(item?.type || item?.referenceType || item?.referenceTypeDisplay || item?.typeDisplay);
+}
+
+function itemByUserValue(item) {
+    return normalizeValue(item?.byUser || item?.addedByUser || item?.userId || item?.addedByUserId);
+}
+
+function itemSortDateValue(item) {
+    return item?.createdAt || item?.updateDate || item?._updatedDate || item?._createdDate || 0;
+}
+
 function buildFilter({ searchValue = '', typeValue = '', statusValue = '', byUserValue = '', referenceNumber = '' } = {}) {
     let filter = wixData.filter();
 
@@ -26,7 +38,9 @@ function buildFilter({ searchValue = '', typeValue = '', statusValue = '', byUse
 
     const type = normalizeValue(typeValue);
     if (type) {
-        filter = filter.eq('referenceType', type);
+        filter = filter.and(
+            wixData.filter().eq('type', type).or(wixData.filter().eq('referenceType', type))
+        );
     }
 
     const status = normalizeValue(statusValue);
@@ -36,7 +50,9 @@ function buildFilter({ searchValue = '', typeValue = '', statusValue = '', byUse
 
     const byUser = normalizeValue(byUserValue);
     if (byUser) {
-        filter = filter.eq('addedByUser', byUser);
+        filter = filter.and(
+            wixData.filter().eq('byUser', byUser).or(wixData.filter().eq('addedByUser', byUser))
+        );
     }
 
     return filter;
@@ -52,7 +68,7 @@ async function applyFilter(dataset, filter) {
     }
     if (typeof dataset.setSort === 'function') {
         await dataset.setSort(
-            wixData.sort().descending('updateDate').descending('_updatedDate').descending('_createdDate')
+            wixData.sort().descending('createdAt').descending('updateDate').descending('_updatedDate').descending('_createdDate')
         );
     }
 }
@@ -87,7 +103,7 @@ async function applyIdsToDataset(dataset, ids) {
 
     if (typeof dataset.setSort === 'function') {
         await dataset.setSort(
-            wixData.sort().descending('updateDate').descending('_updatedDate').descending('_createdDate')
+            wixData.sort().descending('createdAt').descending('updateDate').descending('_updatedDate').descending('_createdDate')
         );
     }
 }
@@ -97,6 +113,7 @@ async function fetchLatestByReference({ searchValue = '', typeValue = '', status
         .query('DemoData')
         .ne('referenceNumber', '')
         .isNotEmpty('referenceNumber')
+        .descending('createdAt')
         .descending('updateDate')
         .descending('_updatedDate')
         .descending('_createdDate');
@@ -105,23 +122,18 @@ async function fetchLatestByReference({ searchValue = '', typeValue = '', status
     if (search) {
         query = query.contains('referenceNumber', search);
     }
-    const type = normalizeValue(typeValue);
-    if (type) {
-        query = query.eq('referenceType', type);
-    }
     const status = normalizeValue(statusValue);
     if (status) {
         query = query.eq('status', status);
     }
+
+    const type = normalizeValue(typeValue);
     const byUser = normalizeValue(byUserValue);
-    if (byUser) {
-        query = query.eq('addedByUser', byUser);
-    }
 
     let results = await query.limit(SEARCH_PAGE_SIZE).find({ suppressAuth: true, suppressHooks: true });
 
     const seenRefs = new Set();
-    const ids = [];
+    const latestItems = [];
 
     const process = (items) => {
         for (const item of items) {
@@ -130,9 +142,7 @@ async function fetchLatestByReference({ searchValue = '', typeValue = '', status
                 continue;
             }
             seenRefs.add(ref);
-            if (item._id) {
-                ids.push(item._id);
-            }
+            latestItems.push(item);
         }
     };
 
@@ -142,7 +152,17 @@ async function fetchLatestByReference({ searchValue = '', typeValue = '', status
         process(results.items || []);
     }
 
-    return ids;
+    const filteredItems = latestItems.filter((item) => {
+        if (type && itemTypeValue(item) !== type) {
+            return false;
+        }
+        if (byUser && itemByUserValue(item) !== byUser) {
+            return false;
+        }
+        return true;
+    });
+
+    return filteredItems.map((item) => item._id).filter(Boolean);
 }
 
 function bindOnChangeOnce(control, handler) {
@@ -248,6 +268,39 @@ async function getUserOptionByUserId(userId) {
     }
 
     return { label: cleanId, value: cleanId };
+}
+
+async function getUserAccountSummaryByUserId(userId) {
+    const cleanId = normalizeValue(userId);
+    if (!cleanId) {
+        return null;
+    }
+
+    try {
+        const result = await wixData
+            .query('UserAccounts')
+            .eq('userId', cleanId)
+            .limit(1)
+            .find({ suppressAuth: true, suppressHooks: true });
+
+        const account = result.items?.[0] || null;
+        if (!account) {
+            return null;
+        }
+
+        const firstName = normalizeValue(account.firstName);
+        const lastName = normalizeValue(account.lastName);
+        const fullName = `${firstName} ${lastName}`.trim();
+
+        return {
+            userId: cleanId,
+            fullName: fullName || cleanId,
+            account,
+        };
+    } catch (error) {
+        console.error('Error fetching user account summary by userId:', error);
+        return null;
+    }
 }
 
 async function getCurrentUserAccountOption() {
@@ -711,7 +764,7 @@ export async function setupCreateOrEditReference(
         }
 
         if (referenceTypeInput) {
-            referenceTypeInput.value = currentItem?.referenceType || '';
+            referenceTypeInput.value = currentItem?.type || currentItem?.referenceType || '';
             if (referenceTypeInput.disable) {
                 referenceTypeInput.disable();
             }
@@ -725,7 +778,7 @@ export async function setupCreateOrEditReference(
         }
 
         if (addedByUserInput) {
-            const userOption = await getUserOptionByUserId(currentItem?.addedByUser);
+            const userOption = await getUserOptionByUserId(currentItem?.byUser || currentItem?.addedByUser);
             if (userOption) {
                 setAddedByUserOptions(userOption.value);
             } else {
@@ -828,7 +881,7 @@ export async function setupCreateOrEditReference(
     //SET UP ADDED BY USER FILTER DROPDOWN
     //WILL GET THE OF THE CURRENT USER LOGGED IN AND SET IT AS THE ADDED BY USER VALUE
     //EXAMPLE: ABC123 
-    bindChangeOnce(addedByUserInput, 'addedByUser', async () => {
+    bindChangeOnce(addedByUserInput, 'byUser', async () => {
             await updateSubmitButtonState();
         });
 
@@ -840,21 +893,29 @@ export async function setupCreateOrEditReference(
             const refNumber = referenceNumberInput?.value?.toString().trim() || '';
             const typeValue = referenceTypeInput?.value || '';
             const statusValue = statusInput?.value || '';
-            const currentDate = new Date();
+            const createdAt = new Date();
             const savePayload = {
                 referenceNumber: refNumber,
-                referenceType: typeValue,
+                type: typeValue,
                 status: statusValue,
-                updateDate: currentDate,
+                createdAt,
             };
 
-            // Always re-source addedByUser from the logged-in user at save time
-            // as a safety net in case the dropdown value was ever reset by the dataset.
-            const saveUserOption = await getCurrentUserAccountOption();
-            const addedByUserValue = saveUserOption?.value || addedByUserInput?.value || '';
-            if (addedByUserValue) {
-                savePayload.addedByUser = addedByUserValue;
+            const byUserValue = normalizeValue(addedByUserInput?.value);
+            if (byUserValue) {
+                savePayload.byUser = byUserValue;
+
+                const byUserSummary = await getUserAccountSummaryByUserId(byUserValue);
+                if (byUserSummary?.fullName) {
+                    savePayload.createdBy = byUserSummary.fullName;
+                }
             }
+
+            // Mirror legacy fields until the rest of the app is fully migrated.
+            savePayload.referenceType = typeValue;
+            savePayload.addedByUser = byUserValue;
+            savePayload.createdByName = savePayload.createdBy || '';
+            savePayload.updateDate = createdAt;
 
             if (editingExistingRecordId) {
                 await wixData.update('DemoData', { _id: editingExistingRecordId, ...savePayload }, { suppressAuth: true, suppressHooks: true });
@@ -909,17 +970,21 @@ export async function insertNewDemoDataItem(
     }
     if (referenceTypeInput) {
         toInsert.type = referenceTypeInput.value || '';
+        toInsert.referenceType = referenceTypeInput.value || '';
     }
     if (statusInput) {
         toInsert.status = statusInput.value || '';
     }
     if (addedByUserInput) {
         toInsert.byUser = addedByUserInput.value || '';
+        toInsert.addedByUser = addedByUserInput.value || '';
+        toInsert.createdBy = userAccount_Name || '';
         toInsert.createdByName = userAccount_Name || '';
     }
 
     // Set the Created date to current timestamp
     toInsert.createdAt = new Date(); // Format date as (2025-12-28T08:50:19.353Z);
+    toInsert.updateDate = toInsert.createdAt;
 
     try {
         const result = await wixData.insert('DemoData', toInsert, { suppressAuth: true, suppressHooks: true });

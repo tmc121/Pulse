@@ -15,7 +15,12 @@ import { primaryNavigate, reportsNavigate } from './appNavigation.js';
  * @typedef {Object} DemoItem
  * @property {string=} _id
  * @property {string=} referenceNumber
+ * @property {string=} type
+ * @property {string=} referenceType
+ * @property {string=} byUser
+ * @property {string=} addedByUser
  * @property {string=} status
+ * @property {Date | string | number=} createdAt
  * @property {Date | string | number=} updateDate
  * @property {Date | string | number=} _updatedDate
  * @property {Date | string | number=} _createdDate
@@ -93,13 +98,23 @@ function normalizedStatus(item) {
 }
 
 /** @param {DemoItem} item */
+function itemTypeValue(item) {
+    return (item?.type || item?.referenceType || '').toString().trim();
+}
+
+/** @param {DemoItem} item */
+function itemByUserValue(item) {
+    return (item?.byUser || item?.addedByUser || '').toString().trim();
+}
+
+/** @param {DemoItem} item */
 function normalizedStatusKey(item) {
     return normalizedStatus(item).toLowerCase();
 }
 
 /** @param {DemoItem} item */
 function itemDateMs(item) {
-    const d = new Date(item?.updateDate || item?._updatedDate || item?._createdDate || 0);
+    const d = new Date(item?.createdAt || item?.updateDate || item?._updatedDate || item?._createdDate || 0);
     return Number.isNaN(d.getTime()) ? 0 : d.getTime();
 }
 
@@ -113,6 +128,7 @@ async function fetchLatestByReference({ searchValue = '', typeValue = '', status
         .query('DemoData')
         .ne('referenceNumber', '')
         .isNotEmpty('referenceNumber')
+        .descending('createdAt')
         .descending('updateDate')
         .descending('_updatedDate')
         .descending('_createdDate');
@@ -120,14 +136,8 @@ async function fetchLatestByReference({ searchValue = '', typeValue = '', status
     if (searchValue) {
         query = query.contains('referenceNumber', searchValue);
     }
-    if (typeValue) {
-        query = query.eq('referenceType', typeValue);
-    }
     if (statusValue) {
         query = query.eq('status', statusValue);
-    }
-    if (byUserValue) {
-        query = query.eq('addedByUser', byUserValue);
     }
 
     let results = await query.limit(REPORT_PAGE_SIZE).find(opts);
@@ -153,6 +163,12 @@ async function fetchLatestByReference({ searchValue = '', typeValue = '', status
     }
 
     let valid = Array.from(mostRecentByRef.values());
+    if (typeValue) {
+        valid = valid.filter((item) => itemTypeValue(item) === typeValue);
+    }
+    if (byUserValue) {
+        valid = valid.filter((item) => itemByUserValue(item) === byUserValue);
+    }
     if (statusExclusion) {
         valid = valid.filter((item) => item.status !== statusExclusion);
     }
@@ -166,6 +182,7 @@ async function fetchNotDeliveredAfterReceived({ searchValue = '', typeValue = ''
         .query('DemoData')
         .ne('referenceNumber', '')
         .isNotEmpty('referenceNumber')
+        .ascending('createdAt')
         .ascending('updateDate')
         .ascending('_updatedDate')
         .ascending('_createdDate');
@@ -173,14 +190,8 @@ async function fetchNotDeliveredAfterReceived({ searchValue = '', typeValue = ''
     if (searchValue) {
         query = query.contains('referenceNumber', searchValue);
     }
-    if (typeValue) {
-        query = query.eq('referenceType', typeValue);
-    }
     if (statusValue) {
         query = query.eq('status', statusValue);
-    }
-    if (byUserValue) {
-        query = query.eq('addedByUser', byUserValue);
     }
 
     let results = await query.limit(REPORT_PAGE_SIZE).find(opts);
@@ -241,7 +252,15 @@ async function fetchNotDeliveredAfterReceived({ searchValue = '', typeValue = ''
         }
     }
 
-    return notDeliveredItems;
+    return notDeliveredItems.filter((item) => {
+        if (typeValue && itemTypeValue(item) !== typeValue) {
+            return false;
+        }
+        if (byUserValue && itemByUserValue(item) !== byUserValue) {
+            return false;
+        }
+        return true;
+    });
 }
 
 async function fetchInNotReceivedByFirstStatus({ searchValue = '', typeValue = '', byUserValue = '' } = {}) {
@@ -250,6 +269,7 @@ async function fetchInNotReceivedByFirstStatus({ searchValue = '', typeValue = '
         .query('DemoData')
         .ne('referenceNumber', '')
         .isNotEmpty('referenceNumber')
+        .ascending('createdAt')
         .ascending('updateDate')
         .ascending('_updatedDate')
         .ascending('_createdDate');
@@ -257,13 +277,6 @@ async function fetchInNotReceivedByFirstStatus({ searchValue = '', typeValue = '
     if (searchValue) {
         query = query.contains('referenceNumber', searchValue);
     }
-    if (typeValue) {
-        query = query.eq('referenceType', typeValue);
-    }
-    if (byUserValue) {
-        query = query.eq('addedByUser', byUserValue);
-    }
-
     let results = await query.limit(REPORT_PAGE_SIZE).find(opts);
 
     const referenceSequences = new Map();
@@ -304,7 +317,15 @@ async function fetchInNotReceivedByFirstStatus({ searchValue = '', typeValue = '
         }
     }
 
-    return inNotReceivedItems;
+    return inNotReceivedItems.filter((item) => {
+        if (typeValue && itemTypeValue(item) !== typeValue) {
+            return false;
+        }
+        if (byUserValue && itemByUserValue(item) !== byUserValue) {
+            return false;
+        }
+        return true;
+    });
 }
 
 /**
@@ -343,7 +364,7 @@ async function applyIdsToDataset(dataset, ids) {
 /** @param {any} dataset */
 async function sortDatasetByNewest(dataset) {
     if (dataset && typeof dataset.setSort === 'function') {
-        await dataset.setSort(wixData.sort().descending('updateDate').descending('_updatedDate').descending('_createdDate'));
+        await dataset.setSort(wixData.sort().descending('createdAt').descending('updateDate').descending('_updatedDate').descending('_createdDate'));
     }
 }
 
@@ -600,6 +621,7 @@ export async function getInboundReceivedOnlyCount() {
             .query('DemoData')
             .ne('referenceNumber', '')
             .isNotEmpty('referenceNumber')
+            .descending('createdAt')
             .descending('updateDate')
             .descending('_updatedDate')
             .descending('_createdDate');
