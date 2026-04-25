@@ -309,10 +309,10 @@ async function fetchInNotReceivedByFirstStatus({ searchValue = '', typeValue = '
 
         items.sort((/** @type {DemoItem} */ a, /** @type {DemoItem} */ b) => itemDateMs(a) - itemDateMs(b));
 
-        const firstStatus = normalizedStatus(items[0]);
+        const firstStatusKey = normalizedStatusKey(items[0]);
         const latestItem = items[items.length - 1];
 
-        if (firstStatus !== 'Inbound Received' && latestItem) {
+        if (firstStatusKey !== 'inbound received' && latestItem) {
             inNotReceivedItems.push(latestItem);
         }
     }
