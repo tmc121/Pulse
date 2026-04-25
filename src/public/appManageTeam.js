@@ -1,12 +1,13 @@
+// @ts-nocheck
 // File:  src/public/appManageTeam.js
 // import { setManageTeamPage } from 'public/appManageTeam.js';
 
 
 // IMPORTS
 import wixData, { get } from 'wix-data';
-import { primaryNavigate } from 'public/appNavigation.js';
-import { getLoggedInMemberId } from 'public/appAuthentication.js';
-import { getUserAccountByMemberId } from 'public/UserAccounts-Auth.js';
+import { primaryNavigate } from './appNavigation.js';
+import { getLoggedInMemberId } from './appAuthentication.js';
+import { getUserAccountByMemberId } from './UserAccounts-Auth.js';
 import { authentication } from 'wix-members';
 import { contacts } from 'wix-crm-frontend';
 

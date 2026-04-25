@@ -9,7 +9,28 @@
 
 //IMPORTS
 import wixData from 'wix-data';
-import { primaryNavigate, reportsNavigate } from 'public/appNavigation';
+import { primaryNavigate, reportsNavigate } from './appNavigation.js';
+
+/**
+ * @typedef {Object} DemoItem
+ * @property {string=} _id
+ * @property {string=} referenceNumber
+ * @property {string=} status
+ * @property {Date | string | number=} updateDate
+ * @property {Date | string | number=} _updatedDate
+ * @property {Date | string | number=} _createdDate
+ */
+
+/**
+ * @typedef {Object} ReportsDropdownContext
+ * @property {any} reportsDataset
+ * @property {any} reportsTable
+ * @property {any} reportsFilterSearch_Input
+ * @property {any} reportsInMenuDropdown
+ * @property {any} primaryMultiState
+ * @property {any} reportsMultiState
+ * @property {any} reportsLoadingProgressBar
+ */
 
 // THIS FUNCTION WILL GENERATE A REPORT BASED ON THE PROVIDED PARAMETERS
 // IN_NOT_RECEIVED_REPORTS: BOOLEAN
@@ -27,6 +48,7 @@ const REPORT_MENU_OPTIONS = [
 
 // Avoid stacking multiple dropdown handlers across report calls
 let reportsDropdownBound = false;
+/** @type {ReportsDropdownContext | null} */
 let reportsDropdownCtx = null;
 let latestReportRunId = 0;
 
@@ -35,10 +57,14 @@ function beginReportRun() {
     return latestReportRunId;
 }
 
+/** @param {number} runId */
 function isCurrentReportRun(runId) {
     return runId === latestReportRunId;
 }
 
+/** @param {any} reportsInMenuDropdown
+ *  @param {string} selectedValue
+ */
 function setReportsMenuSelection(reportsInMenuDropdown, selectedValue) {
     if (!reportsInMenuDropdown) {
         return;
@@ -52,15 +78,21 @@ function setReportsMenuSelection(reportsInMenuDropdown, selectedValue) {
     reportsInMenuDropdown.value = selectedValue;
 }
 
+/** @param {DemoItem} item */
 function normalizedStatus(item) {
     return (item?.status || '').toString().trim();
 }
 
+/** @param {DemoItem} item */
 function itemDateMs(item) {
     const d = new Date(item?.updateDate || item?._updatedDate || item?._createdDate || 0);
     return Number.isNaN(d.getTime()) ? 0 : d.getTime();
 }
 
+/**
+ * @param {{ searchValue?: string, typeValue?: string, statusValue?: string, byUserValue?: string, statusExclusion?: string }} params
+ * @returns {Promise<DemoItem[]>}
+ */
 async function fetchLatestByReference({ searchValue = '', typeValue = '', statusValue = '', byUserValue = '', statusExclusion = '' } = {}) {
     const opts = { suppressAuth: true, suppressHooks: true };
     let query = wixData
@@ -87,6 +119,7 @@ async function fetchLatestByReference({ searchValue = '', typeValue = '', status
     let results = await query.limit(REPORT_PAGE_SIZE).find(opts);
 
     const mostRecentByRef = new Map();
+    /** @param {DemoItem[]} items */
     const processItems = (items) => {
         items.forEach((item) => {
             const ref = item.referenceNumber ? item.referenceNumber.trim() : '';
@@ -139,6 +172,7 @@ async function fetchNotDeliveredAfterReceived({ searchValue = '', typeValue = ''
     let results = await query.limit(REPORT_PAGE_SIZE).find(opts);
 
     const referenceSequences = new Map();
+    /** @param {DemoItem[]} items */
     const processItems = (items) => {
         items.forEach((item) => {
             const ref = item.referenceNumber ? item.referenceNumber.trim() : '';
@@ -166,9 +200,9 @@ async function fetchNotDeliveredAfterReceived({ searchValue = '', typeValue = ''
         let latestItem = null;
         
         // Sort by updateDate to ensure proper sequence
-        items.sort((a, b) => {
-            const aDate = new Date(a.updateDate || a._updatedDate || a._createdDate);
-            const bDate = new Date(b.updateDate || b._updatedDate || b._createdDate);
+        items.sort((/** @type {DemoItem} */ a, /** @type {DemoItem} */ b) => {
+            const aDate = new Date(a.updateDate || a._updatedDate || a._createdDate || 0);
+            const bDate = new Date(b.updateDate || b._updatedDate || b._createdDate || 0);
             return aDate.getTime() - bDate.getTime();
         });
         
@@ -215,6 +249,7 @@ async function fetchInNotReceivedByFirstStatus({ searchValue = '', typeValue = '
     let results = await query.limit(REPORT_PAGE_SIZE).find(opts);
 
     const referenceSequences = new Map();
+    /** @param {DemoItem[]} items */
     const processItems = (items) => {
         (items || []).forEach((item) => {
             const ref = item.referenceNumber ? item.referenceNumber.trim() : '';
@@ -241,7 +276,7 @@ async function fetchInNotReceivedByFirstStatus({ searchValue = '', typeValue = '
             continue;
         }
 
-        items.sort((a, b) => itemDateMs(a) - itemDateMs(b));
+        items.sort((/** @type {DemoItem} */ a, /** @type {DemoItem} */ b) => itemDateMs(a) - itemDateMs(b));
 
         const firstStatus = normalizedStatus(items[0]);
         const latestItem = items[items.length - 1];
@@ -254,6 +289,10 @@ async function fetchInNotReceivedByFirstStatus({ searchValue = '', typeValue = '
     return inNotReceivedItems;
 }
 
+/**
+ * @param {any} dataset
+ * @param {string[]} ids
+ */
 async function applyIdsToDataset(dataset, ids) {
     if (!dataset || typeof dataset.setFilter !== 'function') {
         return;
@@ -283,12 +322,14 @@ async function applyIdsToDataset(dataset, ids) {
     }
 }
 
+/** @param {any} dataset */
 async function sortDatasetByNewest(dataset) {
     if (dataset && typeof dataset.setSort === 'function') {
         await dataset.setSort(wixData.sort().descending('updateDate').descending('_updatedDate').descending('_createdDate'));
     }
 }
 
+/** @param {ReportsDropdownContext} ctx */
 function ensureReportsDropdownHandler(ctx) {
     // Always update the shared context so the bound handler uses fresh datasets/controls
     reportsDropdownCtx = ctx;
@@ -296,7 +337,7 @@ function ensureReportsDropdownHandler(ctx) {
         return;
     }
     reportsDropdownBound = true;
-    ctx.reportsInMenuDropdown.onChange(async (event) => {
+    ctx.reportsInMenuDropdown.onChange(async (/** @type {any} */ event) => {
         const selectedValue = event.target.value;
         const c = reportsDropdownCtx || ctx;
         if (selectedValue === 'inNotReceived') {
@@ -335,6 +376,15 @@ function ensureReportsDropdownHandler(ctx) {
 
 
 
+/**
+ * @param {any} reportsDataset
+ * @param {any} reportsTable
+ * @param {any} reportsFilterSearch_Input
+ * @param {any} reportsInMenuDropdown
+ * @param {any} primaryMultiState
+ * @param {any} reportsMultiState
+ * @param {any} reportsLoadingProgressBar
+ */
 export async function reportsInNotReceived(reportsDataset,
     reportsTable,
     reportsFilterSearch_Input,
@@ -362,7 +412,7 @@ export async function reportsInNotReceived(reportsDataset,
         return 0;
     }
 
-    const ids = items.map((item) => item._id).filter(Boolean);
+    const ids = items.map((item) => item._id).filter((id) => typeof id === 'string');
     await applyIdsToDataset(reportsDataset, ids);
     await sortDatasetByNewest(reportsDataset);
 
@@ -394,6 +444,15 @@ export async function reportsInNotReceived(reportsDataset,
 // This is critical for accurate reporting.
 // The multistateBox and progressBar parameters are required;
 
+/**
+ * @param {any} reportsDataset
+ * @param {any} reportsTable
+ * @param {any} reportsFilterSearch_Input
+ * @param {any} reportsInMenuDropdown
+ * @param {any} primaryMultiState
+ * @param {any} reportsMultiState
+ * @param {any} reportsLoadingProgressBar
+ */
 export async function reportsNotDelivered(reportsDataset,
     reportsTable,
     reportsFilterSearch_Input,
@@ -421,7 +480,7 @@ export async function reportsNotDelivered(reportsDataset,
         return 0;
     }
 
-    const ids = items.map((item) => item._id).filter(Boolean);
+    const ids = items.map((item) => item._id).filter((id) => typeof id === 'string');
     await applyIdsToDataset(reportsDataset, ids);
     await sortDatasetByNewest(reportsDataset);
 
@@ -452,6 +511,15 @@ export async function reportsNotDelivered(reportsDataset,
 // This is critical for accurate reporting.
 // The multistateBox and progressBar parameters are required;
 
+/**
+ * @param {any} reportsDataset
+ * @param {any} reportsTable
+ * @param {any} reportsFilterSearch_Input
+ * @param {any} reportsInMenuDropdown
+ * @param {any} primaryMultiState
+ * @param {any} reportsMultiState
+ * @param {any} reportsLoadingProgressBar
+ */
 export async function reportsAllInbound(reportsDataset,
     reportsTable,
     reportsFilterSearch_Input,
@@ -471,15 +539,15 @@ export async function reportsAllInbound(reportsDataset,
 
     // Show all items; ignore any search input so the full deduped set is returned.
     const items = await fetchLatestByReference({
-        searchValue: null,
-        statusExclusion: null,
+        searchValue: '',
+        statusExclusion: '',
     });
 
     if (!isCurrentReportRun(runId)) {
         return 0;
     }
 
-    const ids = items.map((item) => item._id).filter(Boolean);
+    const ids = items.map((item) => item._id).filter((id) => typeof id === 'string');
     await applyIdsToDataset(reportsDataset, ids);
     await sortDatasetByNewest(reportsDataset);
 
@@ -521,6 +589,7 @@ export async function getInboundReceivedOnlyCount() {
         let results = await query.limit(REPORT_PAGE_SIZE).find(opts);
 
         const latestByRef = new Map();
+        /** @param {DemoItem[]} items */
         const process = (items) => {
             for (const item of items || []) {
                 const refNum = item.referenceNumber ? item.referenceNumber.trim() : '';

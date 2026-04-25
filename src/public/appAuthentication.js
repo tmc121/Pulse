@@ -4,11 +4,12 @@
 
 // IMPORTS
 import { authentication, currentMember } from 'wix-members-frontend';
-import { getUserAccountByMemberId } from 'public/UserAccounts-Auth.js';
+import wixData from 'wix-data';
+import { getUserAccountByMemberId } from './UserAccounts-Auth.js';
 import wixLocationFrontend from 'wix-location-frontend';
 import { primaryNavigate } from './appNavigation';
-import { setMyTeamPage } from 'public/appMyTeam.js';
-import { setManageTeamPage } from 'public/appManageTeam.js';
+import { setMyTeamPage } from './appMyTeam.js';
+import { setManageTeamPage } from './appManageTeam.js';
 import wixWindowFrontend from 'wix-window-frontend';
 // THIS FILE WILL CONTAIN ALL FUNCTIONS RELATED TO APP AUTHENTICATION
 // THIS WILL HELP WITH FUNCTIONS INSIDE THE MASTER PAGE AND OTHER PAGES TO CALL THESE FUNCTIONS FROM HERE RATHER THAN REWRITING THE SAME FUNCTION IN MULTIPLE PAGES

@@ -9,6 +9,7 @@ import wixLocationFrontend from 'wix-location-frontend';
 
 const reportsIntervalByBar = new WeakMap();
 
+/** @param {number} ms */
 function delay(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -37,6 +38,9 @@ function delay(ms) {
 // 'reportsLoading'
 
 // THIS FUNCTION WILL NAVIGATE THE PRIMARY MULTISTATE BOX TO THE DESIRED STATE
+/** @param {any} multistateBox
+ *  @param {string} state
+ */
 export async function primaryNavigate(multistateBox, state) {
     if (!multistateBox || typeof multistateBox.changeState !== 'function') {
         console.warn('primaryNavigate missing multistateBox');
@@ -49,6 +53,11 @@ export async function primaryNavigate(multistateBox, state) {
 } 
 
 // THIS FUNCTION WILL NAVIGATE THE REPORTS MULTISTATE BOX TO THE DESIRED STATE
+/**
+ * @param {any} multistateBox
+ * @param {string} state
+ * @param {any} reportsLoadingProgressBar
+ */
 export async function reportsNavigate(multistateBox, state, reportsLoadingProgressBar) {
     if (!multistateBox || typeof multistateBox.changeState !== 'function') {
         console.warn('reportsNavigate missing multistateBox');
@@ -77,7 +86,7 @@ export async function reportsNavigate(multistateBox, state, reportsLoadingProgre
             if (reportsLoadingProgressBar.value >= 100) {
                 clearInterval(intervalId);
                 reportsIntervalByBar.delete(reportsLoadingProgressBar);
-                resolve();
+                resolve(undefined);
             }
         }, 200);
         reportsIntervalByBar.set(reportsLoadingProgressBar, intervalId);

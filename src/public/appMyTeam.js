@@ -1,10 +1,11 @@
+// @ts-nocheck
 // File:   src/public/appMyTeam.js
 // import { setMyTeamPage } from 'public/appMyTeam.js';
 
 import wixData from 'wix-data';
-import { primaryNavigate } from 'public/appNavigation.js';
-import { getUserAccountByMemberId } from 'public/UserAccounts-Auth.js';
-import { getLoggedInMemberId } from 'public/appAuthentication.js';
+import { primaryNavigate } from './appNavigation.js';
+import { getUserAccountByMemberId } from './UserAccounts-Auth.js';
+import { getLoggedInMemberId } from './appAuthentication.js';
 
 
 // THIS FILE WILL CONTAIN ALL FUNCTIONS RELATED TO THE MY TEAM PAGE AND ITS FUNCTIONALITY

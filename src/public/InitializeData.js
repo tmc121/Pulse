@@ -216,7 +216,7 @@ async function getAllUserAccountOptions() {
             }
             const label = fullName ? `${fullName} (${userId})` : userId;
             return { label, value: userId };
-        }).filter(Boolean);
+        }).filter((option) => option !== null);
 
         options.sort((a, b) => a.label.localeCompare(b.label));
         return uniqueOptions(options);

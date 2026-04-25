@@ -1,11 +1,12 @@
+// @ts-nocheck
 // File:  src/public/UserAccounts-Auth.js
 // import { loadUserAccountPageData } from 'public/appMyAccount.js';
 
 // IMPORTS
 import { currentMember } from 'wix-members-frontend';
 import { primaryNavigate } from './appNavigation';
-import { getUserAccountByMemberId } from 'public/UserAccounts-Auth.js';
-import { showNoAccessState } from 'public/appAuthentication.js';
+import { getUserAccountByMemberId } from './UserAccounts-Auth.js';
+import { showNoAccessState } from './appAuthentication.js';
 
 
 // THIS FILE WILL CONFIGURE THE MY ACCOUNT PAGE FUNCTIONALITY AND DATA FOR THE USER ACCOUNTS IN APP
