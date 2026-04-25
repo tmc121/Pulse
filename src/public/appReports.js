@@ -220,6 +220,9 @@ async function fetchNotDeliveredAfterReceived({ searchValue = '', typeValue = ''
             return aDate.getTime() - bDate.getTime();
         });
         
+        // Each 'Inbound Received' starts a new delivery clock cycle for the reference.
+        // Any stop-clock status after that inbound removes the reference from the
+        // Not Delivered report until a later inbound starts a new cycle.
         for (const item of items) {
             latestItem = item; // Keep track of the latest item
             const statusKey = normalizedStatusKey(item);
