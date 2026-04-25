@@ -17,6 +17,7 @@ const primary_MyAccountState = 'myAccountMain1';
 const primary_TeamState = 'teamMain1';
 const primary_Dashboard = 'dashboard';
 const primary_ManageTeamState = 'manageTeamMain1';
+let getTeamPromptInFlight = false;
 
 // HELPER FUNCTION TO GET PRIMARY MULTISTATE BOX
 
@@ -386,8 +387,32 @@ export async function checkMemberHasTeamAdmin(memberId, cachedUserAccount) {
     try {
         const userAccountWrapper = cachedUserAccount || await getUserAccountByMemberId(memberId);
         const acc = userAccountWrapper?.account ?? userAccountWrapper; // accept either wrapper or raw account
+        if (!acc?._id) {
+            return false;
+        }
+
+        // Multi-reference fields may not be hydrated in regular query results,
+        // so prefer a referenced lookup for the authoritative teamAdmin count.
+        try {
+            const refs = await wixData.queryReferenced('UserAccounts', acc._id, 'teamAdmin');
+            if (Array.isArray(refs?.items) && refs.items.length > 0) {
+                return true;
+            }
+        } catch (refErr) {
+            console.warn('queryReferenced(teamAdmin) failed; falling back to inline field check', refErr);
+        }
+
         const admins = acc?.teamAdmin;
-        return Array.isArray(admins) && admins.length > 0;
+        if (Array.isArray(admins) && admins.length > 0) {
+            return true;
+        }
+        if (typeof admins === 'string' && admins.trim()) {
+            return true;
+        }
+        if (admins && typeof admins === 'object') {
+            return true;
+        }
+        return false;
     } catch (error) {
         console.error("Error checking if member has team admin privileges:", error);
         throw error; // Rethrow the error for further handling if needed
@@ -399,6 +424,23 @@ async function ensureTeamAdminAssigned(memberId, cachedUserAccount) {
     if (hasTeamAdmin) {
         return true;
     }
-    wixWindowFrontend.openLightbox('Get Team');
+
+    // Avoid opening multiple prompts during the same login cycle.
+    if (getTeamPromptInFlight) {
+        return false;
+    }
+
+    // If user is already on the Get Team page, do not open a second prompt.
+    const currentPath = (wixLocationFrontend.path || []).join('/').toLowerCase();
+    if (currentPath.includes('get-team') || currentPath.includes('getteam') || currentPath.includes('v4lc0')) {
+        return false;
+    }
+
+    getTeamPromptInFlight = true;
+    try {
+        await wixWindowFrontend.openLightbox('Get Team');
+    } finally {
+        getTeamPromptInFlight = false;
+    }
     return false;
 }
