@@ -46,6 +46,15 @@ const REPORT_MENU_OPTIONS = [
     { label: 'All Inbound', value: 'allInbound' },
 ];
 
+// Statuses that stop the elapsed delivery clock for a reference.
+const DELIVERY_CLOCK_STOP_STATUSES = new Set([
+    'delivery attempt',
+    'delivered',
+    'research',
+    'late received',
+    'hold over location',
+]);
+
 // Avoid stacking multiple dropdown handlers across report calls
 let reportsDropdownBound = false;
 /** @type {ReportsDropdownContext | null} */
@@ -81,6 +90,11 @@ function setReportsMenuSelection(reportsInMenuDropdown, selectedValue) {
 /** @param {DemoItem} item */
 function normalizedStatus(item) {
     return (item?.status || '').toString().trim();
+}
+
+/** @param {DemoItem} item */
+function normalizedStatusKey(item) {
+    return normalizedStatus(item).toLowerCase();
 }
 
 /** @param {DemoItem} item */
@@ -196,7 +210,7 @@ async function fetchNotDeliveredAfterReceived({ searchValue = '', typeValue = ''
     
     for (const [ref, items] of referenceSequences.entries()) {
         let hasInboundReceived = false;
-        let hasDeliveredAfterReceived = false;
+        let hasClockStopStatusAfterReceived = false;
         let latestItem = null;
         
         // Sort by updateDate to ensure proper sequence
@@ -208,17 +222,18 @@ async function fetchNotDeliveredAfterReceived({ searchValue = '', typeValue = ''
         
         for (const item of items) {
             latestItem = item; // Keep track of the latest item
+            const statusKey = normalizedStatusKey(item);
             
-            if (item.status === 'Inbound Received') {
+            if (statusKey === 'inbound received') {
                 hasInboundReceived = true;
-                hasDeliveredAfterReceived = false; // Reset delivered flag when we see a new inbound
-            } else if (item.status === 'Delivered' && hasInboundReceived) {
-                hasDeliveredAfterReceived = true;
+                hasClockStopStatusAfterReceived = false; // Reset when a new inbound starts a new cycle
+            } else if (hasInboundReceived && DELIVERY_CLOCK_STOP_STATUSES.has(statusKey)) {
+                hasClockStopStatusAfterReceived = true;
             }
         }
         
-        // Include if we have 'Inbound Received' but no 'Delivered' after it
-        if (hasInboundReceived && !hasDeliveredAfterReceived && latestItem) {
+        // Include only if there is an inbound cycle and no stop-clock status after it.
+        if (hasInboundReceived && !hasClockStopStatusAfterReceived && latestItem) {
             notDeliveredItems.push(latestItem);
         }
     }
