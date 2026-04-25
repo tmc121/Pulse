@@ -81,7 +81,10 @@ async function waitForDatasetsReady(datasets, timeoutMs = 8000) {
     const readyPromises = [];
     for (const dataset of (datasets || [])) {
         if (dataset && typeof dataset.onReady === 'function') {
-            readyPromises.push(dataset.onReady());
+            const maybePromise = dataset.onReady();
+            if (maybePromise && typeof maybePromise.then === 'function') {
+                readyPromises.push(maybePromise);
+            }
         }
     }
     const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Datasets not ready before timeout')), timeoutMs));
@@ -237,7 +240,6 @@ $w.onReady( async function () {
         await waitForDatasetsReady([
             search_Dataset,
             selectedReferenced_Dataset,
-            createReference_Dataset,
             reports_ResultsDataset
         ], 8000);
     } catch (err) {

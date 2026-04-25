@@ -568,18 +568,12 @@ export async function setupCreateOrEditReference(
     addedByUserInput,
     submitButton
 ) {
-    if (!createDataset || typeof createDataset.setFieldValue !== 'function') {
-        console.warn('Create reference dataset missing; skipping setup');
+    if (!submitButton || typeof submitButton.onClick !== 'function') {
+        console.warn('Create reference submit button missing; skipping setup');
         return;
     }
 
-    if (createDataset.onReady && typeof createDataset.onReady === 'function') {
-        try {
-            await createDataset.onReady();
-        } catch (error) {
-            console.warn('Create reference dataset failed to become ready', error);
-        }
-    }
+    let editingExistingRecordId = null;
 
     // Set up filter options for create reference form first
     if (referenceTypeInput && referenceTypeInput.options !== undefined) {
@@ -702,17 +696,19 @@ export async function setupCreateOrEditReference(
 
         const latest = query.items && query.items[0];
         if (!latest) {
+            editingExistingRecordId = null;
             return false;
         }
 
-        await createDataset.setFilter(wixData.filter().eq('_id', latest._id));
-        await createDataset.refresh();
-        const total = typeof createDataset.getTotalCount === 'function' ? createDataset.getTotalCount() : 0;
-        if (total > 0 && typeof createDataset.setCurrentItemIndex === 'function') {
-            await createDataset.setCurrentItemIndex(0);
-        }
+        editingExistingRecordId = latest._id || null;
+        const currentItem = latest;
 
-        const currentItem = typeof createDataset.getCurrentItem === 'function' ? createDataset.getCurrentItem() : latest;
+        if (referenceNumberInput) {
+            referenceNumberInput.value = currentItem?.referenceNumber || refNumber || '';
+            if (typeof referenceNumberInput.disable === 'function') {
+                referenceNumberInput.disable();
+            }
+        }
 
         if (referenceTypeInput) {
             referenceTypeInput.value = currentItem?.referenceType || '';
@@ -744,30 +740,16 @@ export async function setupCreateOrEditReference(
     };
 
     const setupNewEntry = async (refNumber) => {
-        // Fetch the current user BEFORE dataset.new() so we can immediately lock
-        // the addedByUser field after the dataset resets connected inputs.
+        editingExistingRecordId = null;
         const currentUserOption = addedByUserInput
             ? await getCurrentUserAccountOption()
             : null;
 
-        if (typeof createDataset.setFilter === 'function') {
-            await createDataset.setFilter(wixData.filter());
-        }
-        if (typeof createDataset.refresh === 'function') {
-            await createDataset.refresh();
-        }
-        if (typeof createDataset.new === 'function') {
-            await createDataset.new();
-        }
-
-        // Immediately pin the addedByUser value in the dataset right after new(),
-        // before any other awaits that could let the reactive reset propagate.
-        if (currentUserOption?.value) {
-            await createDataset.setFieldValue('addedByUser', currentUserOption.value);
-        }
-
-        if (refNumber) {
-            await createDataset.setFieldValue('referenceNumber', refNumber);
+        if (referenceNumberInput) {
+            referenceNumberInput.value = refNumber || '';
+            if (typeof referenceNumberInput.enable === 'function') {
+                referenceNumberInput.enable();
+            }
         }
 
         if (referenceTypeInput) {
@@ -806,7 +788,6 @@ export async function setupCreateOrEditReference(
     bindInputOnce(referenceNumberInput, 'referenceNumber', async () => {
             try {
                 const refNumber = referenceNumberInput?.value?.toString().trim() || '';
-                await createDataset.setFieldValue('referenceNumber', refNumber);
 
                 if (refNumber) {
                     const found = await populateFromExisting(refNumber);
@@ -836,23 +817,11 @@ export async function setupCreateOrEditReference(
 
     //SET UP TYPE FILTER DROPDOWN
     bindChangeOnce(referenceTypeInput, 'referenceType', async () => {
-            const typeValue = referenceTypeInput.value;
-            if (typeValue) {
-                await createDataset.setFieldValue('referenceType', typeValue);
-            } else {
-                await createDataset.setFieldValue('referenceType', '');
-            }
             await updateSubmitButtonState();
         });
 
     //SET UP STATUS FILTER DROPDOWN
     bindChangeOnce(statusInput, 'status', async () => {
-            const statusValue = statusInput.value;
-            if (statusValue) {
-                await createDataset.setFieldValue('status', statusValue);
-            } else {
-                await createDataset.setFieldValue('status', '');
-            }
             await updateSubmitButtonState();
         });
 
@@ -860,12 +829,6 @@ export async function setupCreateOrEditReference(
     //WILL GET THE OF THE CURRENT USER LOGGED IN AND SET IT AS THE ADDED BY USER VALUE
     //EXAMPLE: ABC123 
     bindChangeOnce(addedByUserInput, 'addedByUser', async () => {
-            const byUserValue = addedByUserInput.value;
-            if (byUserValue) {
-                await createDataset.setFieldValue('addedByUser', byUserValue);
-            } else {
-                await createDataset.setFieldValue('addedByUser', '');
-            }
             await updateSubmitButtonState();
         });
 
@@ -874,37 +837,33 @@ export async function setupCreateOrEditReference(
     //SET UP SUBMIT BUTTON FUNCTIONALITY
     if (submitButton && typeof submitButton.onClick === 'function') {
         submitButton.onClick(async () => {
-            // Ensure all required fields are set in the dataset before saving
             const refNumber = referenceNumberInput?.value?.toString().trim() || '';
             const typeValue = referenceTypeInput?.value || '';
             const statusValue = statusInput?.value || '';
             const currentDate = new Date();
-
-            if (refNumber) {
-                await createDataset.setFieldValue('referenceNumber', refNumber);
-            }
-
-            if (typeValue) {
-                await createDataset.setFieldValue('referenceType', typeValue);
-            }
-
-            if (statusValue) {
-                await createDataset.setFieldValue('status', statusValue);
-            }
+            const savePayload = {
+                referenceNumber: refNumber,
+                referenceType: typeValue,
+                status: statusValue,
+                updateDate: currentDate,
+            };
 
             // Always re-source addedByUser from the logged-in user at save time
             // as a safety net in case the dropdown value was ever reset by the dataset.
             const saveUserOption = await getCurrentUserAccountOption();
             const addedByUserValue = saveUserOption?.value || addedByUserInput?.value || '';
             if (addedByUserValue) {
-                await createDataset.setFieldValue('addedByUser', addedByUserValue);
+                savePayload.addedByUser = addedByUserValue;
             }
 
-            // Set update date to current timestamp
-            await createDataset.setFieldValue('updateDate', currentDate);
+            if (editingExistingRecordId) {
+                await wixData.update('DemoData', { _id: editingExistingRecordId, ...savePayload }, { suppressAuth: true, suppressHooks: true });
+            } else {
+                await wixData.insert('DemoData', savePayload, { suppressAuth: true, suppressHooks: true });
+            }
 
-            await createDataset.save();
-            // Optionally, you can add code here to navigate away or show a success message
+            // Refresh local mode after save to keep write-only dynamic dataset out of read operations.
+            await setupNewEntry('');
         });
     }
 }
@@ -977,11 +936,6 @@ export async function insertNewDemoDataItem(
         }
         if (addedByUserInput) {
             addedByUserInput.value = '';
-        }
-
-        // Optionally refresh the dataset to reflect the new item
-        if (createDataset && typeof createDataset.refresh === 'function') {
-            await createDataset.refresh();
         }
 
     } catch (error) {
